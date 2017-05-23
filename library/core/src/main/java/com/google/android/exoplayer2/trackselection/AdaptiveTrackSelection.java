@@ -22,7 +22,6 @@ import com.google.android.exoplayer2.source.TrackGroup;
 import com.google.android.exoplayer2.source.chunk.MediaChunk;
 import com.google.android.exoplayer2.upstream.BandwidthMeter;
 
-import java.util.Arrays;
 import java.util.List;
 
 import timber.log.Timber;
@@ -158,7 +157,7 @@ public class AdaptiveTrackSelection extends BaseTrackSelection {
   }
 
   @Override
-  public void updateSelectedTrack(long bufferedDurationUs) {
+  public void updateSelectedTrack(long bufferedDurationUs, long playbackPositionUs, long bufferEndTime) {
     if (V)  Timber.d("COMM: updateSelectedTrack | bufferedDuration(ms): %d", bufferedDurationUs/1000L);
   //  Timber.d("COMM: bandwidth: %d", bandwidthMeter.getBitrateEstimate());
     long nowMs = SystemClock.elapsedRealtime();

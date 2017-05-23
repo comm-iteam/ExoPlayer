@@ -179,7 +179,7 @@ public class DefaultDashChunkSource implements DashChunkSource {
     }
 
     long bufferedDurationUs = previous != null ? (previous.endTimeUs - playbackPositionUs) : 0;
-    trackSelection.updateSelectedTrack(bufferedDurationUs);
+    trackSelection.updateSelectedTrack(bufferedDurationUs, playbackPositionUs, previous != null ? previous.endTimeUs  : 0);
 
     //Timber.d("COMM: Llamando a getSelectedIndex desde getNextChunk...");
     RepresentationHolder representationHolder =

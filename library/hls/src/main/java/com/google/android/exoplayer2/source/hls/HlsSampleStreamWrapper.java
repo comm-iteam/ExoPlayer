@@ -204,7 +204,7 @@ import java.util.LinkedList;
         }
       }
       if (primaryTrackSelection != null && !mediaChunks.isEmpty()) {
-        primaryTrackSelection.updateSelectedTrack(0);
+        primaryTrackSelection.updateSelectedTrack(0, 0, 0);
         int chunkIndex = chunkSource.getTrackGroup().indexOf(mediaChunks.getLast().trackFormat);
         if (primaryTrackSelection.getSelectedIndexInTrackGroup() != chunkIndex) {
           // The loaded preparation chunk does match the selection. We discard it.

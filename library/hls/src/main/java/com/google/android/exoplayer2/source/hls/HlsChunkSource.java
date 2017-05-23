@@ -200,7 +200,7 @@ import java.util.Locale;
         : Math.max(0, previous.startTimeUs - playbackPositionUs);
 
     // Select the variant.
-    trackSelection.updateSelectedTrack(bufferedDurationUs);
+    trackSelection.updateSelectedTrack(bufferedDurationUs, playbackPositionUs, previous.endTimeUs);
     int selectedVariantIndex = trackSelection.getSelectedIndexInTrackGroup();
 
     boolean switchingVariant = oldVariantIndex != selectedVariantIndex;
@@ -390,7 +390,7 @@ import java.util.Locale;
     }
 
     @Override
-    public void updateSelectedTrack(long bufferedDurationUs) {
+    public void updateSelectedTrack(long bufferedDurationUs, long playbackPositionUs, long bufferEndTime) {
       long nowMs = SystemClock.elapsedRealtime();
       if (!isBlacklisted(selectedIndex, nowMs)) {
         return;

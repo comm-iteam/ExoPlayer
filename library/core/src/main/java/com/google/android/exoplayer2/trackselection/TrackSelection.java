@@ -26,7 +26,7 @@ import java.util.List;
  * {@link TrackGroup}, and a possibly varying individual selected track from the subset.
  * <p>
  * Tracks belonging to the subset are exposed in decreasing bandwidth order. The individual selected
- * track may change as a result of calling {@link #updateSelectedTrack(long)}.
+ * track may change as a result of calling {@link #updateSelectedTrack(long, long, long)}.
  */
 public interface TrackSelection {
 
@@ -124,10 +124,11 @@ public interface TrackSelection {
 
   /**
    * Updates the selected track.
-   *
-   * @param bufferedDurationUs The duration of media currently buffered in microseconds.
+   *  @param bufferedDurationUs The duration of media currently buffered in microseconds.
+   * @param playbackPositionUs
+   * @param bufferEndTime
    */
-  void updateSelectedTrack(long bufferedDurationUs);
+  void updateSelectedTrack(long bufferedDurationUs, long playbackPositionUs, long bufferEndTime);
 
   /**
    * May be called periodically by sources that load media in discrete {@link MediaChunk}s and
@@ -148,10 +149,10 @@ public interface TrackSelection {
 
   /**
    * Attempts to blacklist the track at the specified index in the selection, making it ineligible
-   * for selection by calls to {@link #updateSelectedTrack(long)} for the specified period of time.
+   * for selection by calls to {@link #updateSelectedTrack(long, long, long)} for the specified period of time.
    * Blacklisting will fail if all other tracks are currently blacklisted. If blacklisting the
    * currently selected track, note that it will remain selected until the next call to
-   * {@link #updateSelectedTrack(long)}.
+   * {@link #updateSelectedTrack(long, long, long)}.
    *
    * @param index The index of the track in the selection.
    * @param blacklistDurationMs The duration of time for which the track should be blacklisted, in

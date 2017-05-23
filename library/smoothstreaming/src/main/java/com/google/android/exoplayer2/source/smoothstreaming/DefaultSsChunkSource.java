@@ -155,7 +155,7 @@ public class DefaultSsChunkSource implements SsChunkSource {
     }
 
     long bufferedDurationUs = previous != null ? (previous.endTimeUs - playbackPositionUs) : 0;
-    trackSelection.updateSelectedTrack(bufferedDurationUs);
+    trackSelection.updateSelectedTrack(bufferedDurationUs, playbackPositionUs, previous.endTimeUs);
 
     StreamElement streamElement = manifest.streamElements[elementIndex];
     if (streamElement.chunkCount == 0) {
