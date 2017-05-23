@@ -407,6 +407,8 @@ public class DefaultHttpDataSource implements HttpDataSource {
         rangeRequest += (position + length - 1);
       }
       connection.setRequestProperty("Range", rangeRequest);
+      // TODO does the range printing
+//      System.out.println("COMM: setRequestProperty: " + url + " " + rangeRequest) ;
     }
     connection.setRequestProperty("User-Agent", userAgent);
     if (!allowGzip) {
@@ -477,6 +479,7 @@ public class DefaultHttpDataSource implements HttpDataSource {
       }
     }
     String contentRangeHeader = connection.getHeaderField("Content-Range");
+//    System.out.println("COMM: contentRangeHeader: "+contentLengthHeader);
     if (!TextUtils.isEmpty(contentRangeHeader)) {
       Matcher matcher = CONTENT_RANGE_HEADER.matcher(contentRangeHeader);
       if (matcher.find()) {

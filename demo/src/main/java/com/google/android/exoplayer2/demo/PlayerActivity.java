@@ -59,6 +59,7 @@ import com.google.android.exoplayer2.source.smoothstreaming.DefaultSsChunkSource
 import com.google.android.exoplayer2.source.smoothstreaming.SsMediaSource;
 import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
+import com.google.android.exoplayer2.trackselection.LookAheadTrackSelection;
 import com.google.android.exoplayer2.trackselection.MappingTrackSelector.MappedTrackInfo;
 import com.google.android.exoplayer2.trackselection.TrackSelection;
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
@@ -73,6 +74,8 @@ import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
 import java.util.UUID;
+
+import hugo.weaving.DebugLog;
 
 /**
  * An activity that plays media using {@link SimpleExoPlayer}.
@@ -122,6 +125,7 @@ public class PlayerActivity extends Activity implements OnClickListener, ExoPlay
   // Activity lifecycle
 
   @Override
+  @DebugLog
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     shouldAutoPlay = true;
@@ -262,7 +266,7 @@ public class PlayerActivity extends Activity implements OnClickListener, ExoPlay
           drmSessionManager, extensionRendererMode);
 
       TrackSelection.Factory videoTrackSelectionFactory =
-          new AdaptiveTrackSelection.Factory(BANDWIDTH_METER);
+          new LookAheadTrackSelection.Factory(BANDWIDTH_METER);
       trackSelector = new DefaultTrackSelector(videoTrackSelectionFactory);
       trackSelectionHelper = new TrackSelectionHelper(trackSelector, videoTrackSelectionFactory);
       lastSeenTrackGroupArray = null;

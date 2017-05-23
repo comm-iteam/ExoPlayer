@@ -20,6 +20,8 @@ import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.source.TrackGroup;
 import java.util.Random;
 
+import timber.log.Timber;
+
 /**
  * A {@link TrackSelection} whose selected track is updated randomly.
  */
@@ -113,6 +115,7 @@ public final class RandomTrackSelection extends BaseTrackSelection {
 
   @Override
   public int getSelectedIndex() {
+    Timber.d("COMM: getSelectedIndex: %d", selectedIndex);
     return selectedIndex;
   }
 

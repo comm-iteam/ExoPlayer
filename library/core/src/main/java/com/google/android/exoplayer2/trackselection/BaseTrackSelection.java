@@ -25,10 +25,14 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
+import timber.log.Timber;
+
 /**
  * An abstract base class suitable for most {@link TrackSelection} implementations.
  */
 public abstract class BaseTrackSelection implements TrackSelection {
+
+  private final boolean V = true;
 
   /**
    * The selected {@link TrackGroup}.
@@ -120,17 +124,23 @@ public abstract class BaseTrackSelection implements TrackSelection {
 
   @Override
   public final Format getSelectedFormat() {
+    //if (V) Timber.d("COMM: getSelectedFormat");
+    //Timber.d("COMM: Llamando a getSelectedIndex desde getSelectedFormat...");
     return formats[getSelectedIndex()];
   }
 
   @Override
   public final int getSelectedIndexInTrackGroup() {
-    return tracks[getSelectedIndex()];
+    int selectedIndexInTrackGroup =tracks[getSelectedIndex()];
+    if (V) Timber.d("COMM: getSelectedIndexInTrackGroup: %d", selectedIndexInTrackGroup);
+    return selectedIndexInTrackGroup;
   }
 
   @Override
   public int evaluateQueueSize(long playbackPositionUs, List<? extends MediaChunk> queue) {
-    return queue.size();
+    int size = queue.size();
+    Timber.d("COMM: evaluateQueueSize: %d", size);
+    return size;
   }
 
   @Override

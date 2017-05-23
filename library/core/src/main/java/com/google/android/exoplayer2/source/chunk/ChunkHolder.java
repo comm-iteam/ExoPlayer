@@ -38,4 +38,8 @@ public final class ChunkHolder {
     endOfStream = false;
   }
 
+  @Override
+  public String toString() {
+    return "HolderChunk["+chunk+"]";
+  }
 }

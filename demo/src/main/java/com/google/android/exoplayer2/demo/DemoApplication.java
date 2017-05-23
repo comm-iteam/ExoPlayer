@@ -23,6 +23,8 @@ import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
 import com.google.android.exoplayer2.upstream.HttpDataSource;
 import com.google.android.exoplayer2.util.Util;
 
+import timber.log.Timber;
+
 /**
  * Placeholder application to facilitate overriding Application methods for debugging and testing.
  */
@@ -34,6 +36,10 @@ public class DemoApplication extends Application {
   public void onCreate() {
     super.onCreate();
     userAgent = Util.getUserAgent(this, "ExoPlayerDemo");
+
+    if (BuildConfig.DEBUG) {
+      Timber.plant(new Timber.DebugTree());
+    }
   }
 
   public DataSource.Factory buildDataSourceFactory(DefaultBandwidthMeter bandwidthMeter) {

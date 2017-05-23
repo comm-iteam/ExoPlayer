@@ -48,6 +48,8 @@ import com.google.android.exoplayer2.util.Util;
 import java.io.IOException;
 import java.util.List;
 
+import timber.log.Timber;
+
 /**
  * A default {@link DashChunkSource} implementation.
  */
@@ -162,6 +164,7 @@ public class DefaultDashChunkSource implements DashChunkSource {
 
   @Override
   public int getPreferredQueueSize(long playbackPositionUs, List<? extends MediaChunk> queue) {
+    Timber.d("COMM: getPreferredQueueSize: %d, queue: %s", playbackPositionUs, queue);
     if (fatalError != null || trackSelection.length() < 2) {
       return queue.size();
     }
@@ -170,6 +173,7 @@ public class DefaultDashChunkSource implements DashChunkSource {
 
   @Override
   public final void getNextChunk(MediaChunk previous, long playbackPositionUs, ChunkHolder out) {
+    Timber.d("COMM:1 getNextChunk| playbackPosition(s): %f; previous MediaChunk: %s", playbackPositionUs / 1000000f, previous);
     if (fatalError != null) {
       return;
     }
@@ -177,8 +181,9 @@ public class DefaultDashChunkSource implements DashChunkSource {
     long bufferedDurationUs = previous != null ? (previous.endTimeUs - playbackPositionUs) : 0;
     trackSelection.updateSelectedTrack(bufferedDurationUs);
 
+    //Timber.d("COMM: Llamando a getSelectedIndex desde getNextChunk...");
     RepresentationHolder representationHolder =
-        representationHolders[trackSelection.getSelectedIndex()];
+        representationHolders[trackSelection.getSelectedIndex()]; //Here it is called again getSelectedIndex()
 
     if (representationHolder.extractorWrapper != null) {
       Representation selectedRepresentation = representationHolder.representation;
@@ -195,6 +200,7 @@ public class DefaultDashChunkSource implements DashChunkSource {
         out.chunk = newInitializationChunk(representationHolder, dataSource,
             trackSelection.getSelectedFormat(), trackSelection.getSelectionReason(),
             trackSelection.getSelectionData(), pendingInitializationUri, pendingIndexUri);
+        Timber.d("COMM:2 getNextChunk:populate out chunk holder: %s", out);
         return;
       }
     }
@@ -204,6 +210,7 @@ public class DefaultDashChunkSource implements DashChunkSource {
     if (availableSegmentCount == 0) {
       // The index doesn't define any segments.
       out.endOfStream = !manifest.dynamic || (periodIndex < manifest.getPeriodCount() - 1);
+      Timber.d("COMM:3 getNextChunk:populate out chunk holder with end of stream: %s", out);
       return;
     }
 
@@ -244,13 +251,16 @@ public class DefaultDashChunkSource implements DashChunkSource {
         || (missingLastSegment && segmentNum >= lastAvailableSegmentNum)) {
       // This is beyond the last chunk in the current manifest.
       out.endOfStream = !manifest.dynamic || (periodIndex < manifest.getPeriodCount() - 1);
+      Timber.d("COMM:4 getNextChunk:populate out chunk holder with end of stream: %s", out);
       return;
     }
 
     int maxSegmentCount = Math.min(maxSegmentsPerLoad, lastAvailableSegmentNum - segmentNum + 1);
+    //Timber.d("COMM: Llamando a getSelectedFormat desde getNextChunk (al final)...");
     out.chunk = newMediaChunk(representationHolder, dataSource, trackSelection.getSelectedFormat(),
         trackSelection.getSelectionReason(), trackSelection.getSelectionData(), segmentNum,
         maxSegmentCount);
+    Timber.d("COMM:5 getNextChunk:populate out chunk holder: %s", out);
   }
 
   @Override

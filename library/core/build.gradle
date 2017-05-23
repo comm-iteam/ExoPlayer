@@ -40,6 +40,8 @@ dependencies {
     androidTestCompile 'com.google.dexmaker:dexmaker:' + dexmakerVersion
     androidTestCompile 'com.google.dexmaker:dexmaker-mockito:' + dexmakerVersion
     androidTestCompile 'org.mockito:mockito-core:' + mockitoVersion
+
+    compile 'com.jakewharton.timber:timber:4.5.1'
 }
 
 ext {

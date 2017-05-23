@@ -16,8 +16,9 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.3.0'
+        classpath 'com.android.tools.build:gradle:2.3.2'
         classpath 'com.novoda:bintray-release:0.4.0'
+        classpath 'com.jakewharton.hugo:hugo-plugin:1.2.1'
     }
     // Workaround for the following test coverage issue. Remove when fixed:
     // https://code.google.com/p/android/issues/detail?id=226070

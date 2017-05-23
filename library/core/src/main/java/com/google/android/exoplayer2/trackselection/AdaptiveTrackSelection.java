@@ -21,13 +21,19 @@ import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.source.TrackGroup;
 import com.google.android.exoplayer2.source.chunk.MediaChunk;
 import com.google.android.exoplayer2.upstream.BandwidthMeter;
+
+import java.util.Arrays;
 import java.util.List;
+
+import timber.log.Timber;
 
 /**
  * A bandwidth based adaptive {@link TrackSelection}, whose selected track is updated to be the one
  * of highest quality given the current network conditions and the state of the buffer.
  */
 public class AdaptiveTrackSelection extends BaseTrackSelection {
+
+  private final boolean V = true;
 
   /**
    * Factory for {@link AdaptiveTrackSelection} instances.
@@ -153,10 +159,14 @@ public class AdaptiveTrackSelection extends BaseTrackSelection {
 
   @Override
   public void updateSelectedTrack(long bufferedDurationUs) {
+    if (V)  Timber.d("COMM: updateSelectedTrack | bufferedDuration(ms): %d", bufferedDurationUs/1000L);
+  //  Timber.d("COMM: bandwidth: %d", bandwidthMeter.getBitrateEstimate());
     long nowMs = SystemClock.elapsedRealtime();
     // Get the current and ideal selections.
     int currentSelectedIndex = selectedIndex;
+    //Timber.d("COMM: Llamando a getSelectedFormat desde updateSelectedTrack...");
     Format currentFormat = getSelectedFormat();
+    if (V)  Timber.d("COMM: updateSelectedTrack | Format: %s", currentFormat);
     int idealSelectedIndex = determineIdealSelectedIndex(nowMs);
     Format idealFormat = getFormat(idealSelectedIndex);
     // Assume we can switch to the ideal selection.
@@ -183,21 +193,31 @@ public class AdaptiveTrackSelection extends BaseTrackSelection {
 
   @Override
   public int getSelectedIndex() {
+    //if (V) Timber.d("COMM: getSelectedIndex: %d", selectedIndex);
+    //if (V) Timber.d("COMM: getSelectedIndex - tracks: %s", (Arrays.toString(tracks)));
     return selectedIndex;
   }
 
   @Override
   public int getSelectionReason() {
+    //if (V) Timber.d("COMM: getSelectionReason: %d", reason);
+
     return reason;
   }
 
   @Override
   public Object getSelectionData() {
+    //Timber.d("COMM: getSelectionData: %s", "null");
+    if (V) Timber.d("COMM: getSelectionData");
     return null;
   }
 
+  //It seems this method is not reached
   @Override
   public int evaluateQueueSize(long playbackPositionUs, List<? extends MediaChunk> queue) {
+
+    if (V) Timber.d("COMM: evaluateQueueSize: queue: %d, playback position: %d, queue: %s", queue.isEmpty(), playbackPositionUs, queue);
+
     if (queue.isEmpty()) {
       return 0;
     }
@@ -223,6 +243,10 @@ public class AdaptiveTrackSelection extends BaseTrackSelection {
         return i;
       }
     }
+
+
+
+
     return queueSize;
   }
 
@@ -233,6 +257,8 @@ public class AdaptiveTrackSelection extends BaseTrackSelection {
    *     {@link Long#MIN_VALUE} to ignore blacklisting.
    */
   private int determineIdealSelectedIndex(long nowMs) {
+  //  if (V) Timber.d("COMM: determineIdealSelectedIndex: %d", nowMs);
+
     long bitrateEstimate = bandwidthMeter.getBitrateEstimate();
     long effectiveBitrate = bitrateEstimate == BandwidthMeter.NO_ESTIMATE
         ? maxInitialBitrate : (long) (bitrateEstimate * bandwidthFraction);

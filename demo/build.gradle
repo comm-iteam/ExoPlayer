@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 apply plugin: 'com.android.application'
+apply plugin: 'com.jakewharton.hugo'
 
 android {
     compileSdkVersion project.ext.compileSdkVersion
@@ -54,4 +55,7 @@ dependencies {
     withExtensionsCompile project(path: ':extension-flac')
     withExtensionsCompile project(path: ':extension-opus')
     withExtensionsCompile project(path: ':extension-vp9')
+
+    compile 'com.jakewharton.timber:timber:4.5.1'
+
 }
