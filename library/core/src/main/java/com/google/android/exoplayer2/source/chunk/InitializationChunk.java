@@ -22,9 +22,12 @@ import com.google.android.exoplayer2.extractor.Extractor;
 import com.google.android.exoplayer2.extractor.ExtractorInput;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DataSpec;
+import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
 import com.google.android.exoplayer2.util.Assertions;
 import com.google.android.exoplayer2.util.Util;
 import java.io.IOException;
+
+import timber.log.Timber;
 
 /**
  * A {@link Chunk} that uses an {@link Extractor} to decode initialization data for single track.
@@ -50,6 +53,12 @@ public final class InitializationChunk extends Chunk {
     super(dataSource, dataSpec, C.DATA_TYPE_MEDIA_INITIALIZATION, trackFormat, trackSelectionReason,
         trackSelectionData, C.TIME_UNSET, C.TIME_UNSET);
     this.extractorWrapper = extractorWrapper;
+
+    Timber.d("COMMLA: %s", dataSource);
+    Timber.d("COMMLA: %s", dataSpec);
+    Timber.d("COMMLA: %s", trackFormat);
+    Timber.d("COMMLA: %d", trackSelectionReason);
+    Timber.d("COMMLA: %s", trackSelectionData);
   }
 
   @Override

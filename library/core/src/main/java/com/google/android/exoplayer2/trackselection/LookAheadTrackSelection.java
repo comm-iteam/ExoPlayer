@@ -33,6 +33,10 @@ public class LookAheadTrackSelection extends BaseTrackSelection {
   //seconds. NOTE: Only valid for Elephant's Dream
   private double chunkDuration[] = {10.00, 10.00, 10.28, 10.00, 12.56, 14.08, 10.00, 17.20, 12.40, 15.64, 11.48, 12.68, 10.48, 10.56, 14.80, 14.48, 11.28, 15.92, 10.88, 10.40, 12.20, 11.20, 12.24, 10.00, 9.24};
 
+  public static final int DEFAULT_MAX_INITIAL_BITRATE = 800000;
+  public static final float DEFAULT_BANDWIDTH_FRACTION = 0.75f;
+
+
   private int selectedIndex = 0;
   private int reason;
   private BandwidthMeter bandwidthMeter;
@@ -64,29 +68,35 @@ public class LookAheadTrackSelection extends BaseTrackSelection {
 
   @Override
   public void updateSelectedTrack(long bufferedDurationUs, long playbackPositionUs, long bufferEndTime) {
-    if (V)
-      Timber.d("COMMLA: playback position: %f, buffer %f", playbackPositionUs / 1000_000f, bufferedDurationUs / 1000_000f);
+    if (V) Timber.d("COMMLA: playback position: %f, buffer %f", playbackPositionUs / 1000_000f, bufferedDurationUs / 1000_000f);
     int lastDashChunkBufferedIndex = getLastDashChunkBufferedIndex(bufferEndTime / 1000_000f);
-    if (V) {
-      Timber.d("COMMLA: Index of las buffered dash chunk: %d", lastDashChunkBufferedIndex);
-    }
+    //if (V) Timber.d("COMMLA: Index of las buffered dash chunk: %d", lastDashChunkBufferedIndex);
+
 
     long bitrateEstimate = bandwidthMeter.getBitrateEstimate();
 
     float aheadDuration = getAheadDuration(lastDashChunkBufferedIndex, AHEAD_CHUNKS);
 
-    if (V) Timber.d("----------------------------------------------");
+      selectedIndex = length-1;
+      float neededBandwidth = 0;
+      float effectiveBitrate = bitrateEstimate == BandwidthMeter.NO_ESTIMATE
+        ? DEFAULT_MAX_INITIAL_BITRATE : (long) (bitrateEstimate * DEFAULT_BANDWIDTH_FRACTION);
+      effectiveBitrate = effectiveBitrate/1.5f;
+
 
       for (int i = 0; i < length; i++) {
         float aheadTrackSize = getAheadTrackSize(i, lastDashChunkBufferedIndex, AHEAD_CHUNKS);
-        float neededBandwidth = aheadTrackSize * 8F / aheadDuration;
-        if (V) Timber.d("COMMLA: -------------> %f", neededBandwidth);
+        neededBandwidth = aheadTrackSize * 8F / aheadDuration;
+        //if (V) Timber.d("COMMLA: -------------> %f", neededBandwidth);
         //System.out.println("/////////////// i: "+i+", lastDashChunkBufferedIndex: "+lastDashChunkBufferedIndex+", aheadTrackSize: "+aheadTrackSize+" neededBandwidth: "+neededBandwidth);
+        if (V) Timber.d("COMMLA: --------------------------------------> needBandwidth: "+neededBandwidth+", i: "+i);
+        if (effectiveBitrate>neededBandwidth){
+          selectedIndex = i;
+          break;
+        }
       }
-
-
-
-    selectedIndex = ++selectedIndex % length;
+      if (V) Timber.d("COMMLA: --------> needBandwidth: "+neededBandwidth+", effectiveBitrate: "+effectiveBitrate+", selectedIndex: "+selectedIndex);
+    //selectedIndex = ++selectedIndex % length;
   }
 
 
