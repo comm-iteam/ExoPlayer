@@ -18,6 +18,7 @@ package com.google.android.exoplayer2.trackselection;
 import android.os.SystemClock;
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.Format;
+import com.google.android.exoplayer2.extractor.ChunkIndex;
 import com.google.android.exoplayer2.source.TrackGroup;
 import com.google.android.exoplayer2.source.chunk.MediaChunk;
 import com.google.android.exoplayer2.util.Assertions;
@@ -25,6 +26,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
+import hugo.weaving.DebugLog;
 import timber.log.Timber;
 
 /**
@@ -51,6 +53,9 @@ public abstract class BaseTrackSelection implements TrackSelection {
    * The {@link Format}s of the selected tracks, in order of decreasing bandwidth.
    */
   private final Format[] formats;
+
+  protected final ChunkIndex[] chunkIndices;
+
   /**
    * Selected track blacklist timestamps, in order of decreasing bandwidth.
    */
@@ -74,6 +79,8 @@ public abstract class BaseTrackSelection implements TrackSelection {
       formats[i] = group.getFormat(tracks[i]);
     }
     Arrays.sort(formats, new DecreasingBandwidthComparator());
+    // create the chunk index vector
+    chunkIndices = new ChunkIndex[length];
     // Set the format indices in the same order.
     this.tracks = new int[length];
     for (int i = 0; i < length; i++) {
@@ -124,22 +131,18 @@ public abstract class BaseTrackSelection implements TrackSelection {
 
   @Override
   public final Format getSelectedFormat() {
-    //if (V) Timber.d("COMM: getSelectedFormat");
-    //Timber.d("COMM: Llamando a getSelectedIndex desde getSelectedFormat...");
     return formats[getSelectedIndex()];
   }
 
   @Override
   public final int getSelectedIndexInTrackGroup() {
     int selectedIndexInTrackGroup =tracks[getSelectedIndex()];
-    if (V) Timber.d("COMM: getSelectedIndexInTrackGroup: %d", selectedIndexInTrackGroup);
     return selectedIndexInTrackGroup;
   }
 
   @Override
   public int evaluateQueueSize(long playbackPositionUs, List<? extends MediaChunk> queue) {
     int size = queue.size();
-    Timber.d("COMM: evaluateQueueSize: %d", size);
     return size;
   }
 
@@ -201,4 +204,25 @@ public abstract class BaseTrackSelection implements TrackSelection {
 
   }
 
+  @Override
+  public void dashSegmentIndexLoaded(int trackIndex, ChunkIndex chunkIndex) {
+    chunkIndices[trackIndex] = chunkIndex;
+    for (ChunkIndex ci : chunkIndices) {
+      if (ci == null) return;
+    }
+    printNextChunkInfo();
+  }
+
+  public void printNextChunkInfo() {
+
+    for (int i = 0; i < chunkIndices.length; i++) {
+      if (chunkIndices[i] != null) {
+
+        Timber.d("Track: %d Times: %s", i, Arrays.toString(chunkIndices[i].timesUs));
+        Timber.d("Track: %d Sizes: %s", i, Arrays.toString(chunkIndices[i].sizes));
+        Timber.d("Track: %d durations: %s", i, Arrays.toString(chunkIndices[i].durationsUs));
+      }
+    }
+
+  }
 }

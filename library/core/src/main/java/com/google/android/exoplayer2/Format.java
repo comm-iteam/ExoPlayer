@@ -527,7 +527,7 @@ public final class Format implements Parcelable {
 
   @Override
   public String toString() {
-    return "Format(" + id + ", " + containerMimeType + ", " + sampleMimeType + ", " + bitrate + ", "
+    return "Format(id=" + id + ", " + containerMimeType + ", " + sampleMimeType + ", " + bitrate + ", "
         + language + ", [" + width + ", " + height + ", " + frameRate + "]"
         + ", [" + channelCount + ", " + sampleRate + "])";
   }

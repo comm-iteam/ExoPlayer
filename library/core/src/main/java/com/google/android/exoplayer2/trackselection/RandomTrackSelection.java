@@ -115,7 +115,6 @@ public final class RandomTrackSelection extends BaseTrackSelection {
 
   @Override
   public int getSelectedIndex() {
-    Timber.d("COMM: getSelectedIndex: %d", selectedIndex);
     return selectedIndex;
   }
 

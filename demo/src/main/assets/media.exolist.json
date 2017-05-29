@@ -4,7 +4,7 @@
     "samples": [
       {
         "name": "Elephant's Dream",
-        "uri": "http://10.0.0.84:8000/ed5m_h264_dash.mpd",
+        "uri": "http://10.0.0.11/ed5m_h264_dash.mpd",
         "extension": "mpd"
       },
       {

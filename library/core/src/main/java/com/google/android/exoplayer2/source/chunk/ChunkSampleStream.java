@@ -31,6 +31,8 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import hugo.weaving.DebugLog;
+
 /**
  * A {@link SampleStream} that loads media in {@link Chunk}s, obtained from a {@link ChunkSource}.
  * May also be configured to expose additional embedded {@link SampleStream}s.
@@ -70,6 +72,7 @@ public class ChunkSampleStream<T extends ChunkSource> implements SampleStream, S
    *     before propagating an error.
    * @param eventDispatcher A dispatcher to notify of events.
    */
+  @DebugLog
   public ChunkSampleStream(int primaryTrackType, int[] embeddedTrackTypes, T chunkSource,
       Callback<ChunkSampleStream<T>> callback, Allocator allocator, long positionUs,
       int minLoadableRetryCount, EventDispatcher eventDispatcher) {
@@ -262,6 +265,7 @@ public class ChunkSampleStream<T extends ChunkSource> implements SampleStream, S
   // Loader.Callback implementation.
 
   @Override
+  @DebugLog
   public void onLoadCompleted(Chunk loadable, long elapsedRealtimeMs, long loadDurationMs) {
     chunkSource.onChunkLoadCompleted(loadable);
     eventDispatcher.loadCompleted(loadable.dataSpec, loadable.type, primaryTrackType,
@@ -323,6 +327,7 @@ public class ChunkSampleStream<T extends ChunkSource> implements SampleStream, S
   // SequenceableLoader implementation
 
   @Override
+  @DebugLog
   public boolean continueLoading(long positionUs) {
     if (loadingFinished || loader.isLoading()) {
       return false;

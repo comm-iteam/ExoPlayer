@@ -18,6 +18,8 @@ package com.google.android.exoplayer2.source.dash;
 import com.google.android.exoplayer2.extractor.ChunkIndex;
 import com.google.android.exoplayer2.source.dash.manifest.RangedUri;
 
+import java.util.Arrays;
+
 /**
  * An implementation of {@link DashSegmentIndex} that wraps a {@link ChunkIndex} parsed from a
  * media stream.
@@ -68,4 +70,8 @@ public final class DashWrappingSegmentIndex implements DashSegmentIndex {
     return true;
   }
 
+  @Override
+  public String toString() {
+    return Arrays.toString(chunkIndex.offsets);
+  }
 }

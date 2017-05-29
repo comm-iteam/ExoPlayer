@@ -1,10 +1,13 @@
 package com.google.android.exoplayer2.trackselection;
 
 import com.google.android.exoplayer2.C;
-import com.google.android.exoplayer2.Format;
+import com.google.android.exoplayer2.extractor.ChunkIndex;
 import com.google.android.exoplayer2.source.TrackGroup;
 import com.google.android.exoplayer2.upstream.BandwidthMeter;
 
+import java.util.Arrays;
+
+import hugo.weaving.DebugLog;
 import timber.log.Timber;
 
 /**
@@ -15,27 +18,9 @@ public class LookAheadTrackSelection extends BaseTrackSelection {
 
   private final boolean V = true;
 
-  private static final int AHEAD_CHUNKS =  3;
-
-  // bytes. NOTE: Only valid for Elephant's Dream
-  private int chunkSizes[][] = {
-      {7667797, 7179078, 10170863, 17683639, 15072662, 14529482, 5111726, 16549378, 18851768, 72106282, 54933067, 24383499, 7365758, 5210616, 16231324, 7592712, 6289471, 7703194, 5998696, 6389021, 5474164, 6435880, 8406105, 5773928, 12869185},
-      {3669846, 3465268, 5674955, 9874238, 8434560, 8143672, 2883569, 9183559, 11318120, 38908019, 28974419, 12665731, 3196705, 2693392, 8379028, 3530115, 3047289, 4112581, 3113877, 3556249, 3038707, 3419333, 4419206, 3035841, 6537461},
-      {726898, 629092, 1459201, 2020259, 1466767, 1583434, 675248, 1932774, 2608417, 6548244, 4337952, 2501037, 554945, 563846, 1872613, 731610, 687828, 1047670, 725281, 951203, 810984, 813243, 1138388, 664442, 1351615}
-  };
-
-  //seconds. NOTE: Only valid for Elephant's Dream
-  private double chunkTimeRanges[][] = {
-      {0.00, 10.00, 20.00, 30.28, 40.28, 52.84, 66.92, 76.92, 94.12, 106.52, 122.16, 133.64, 146.32, 156.80, 167.36, 182.16, 196.64, 207.92, 223.84, 234.72, 245.12, 257.32, 268.52, 280.76, 290.76},
-      {10.0, 20.0, 30.28, 40.28, 52.84, 66.92, 76.92, 94.12, 106.52, 122.16, 133.64, 146.32, 156.80, 167.36, 182.16, 196.64, 207.92, 223.84, 234.72, 245.12, 257.32, 268.52, 280.76, 290.76, 300.00}
-  };
-
-  //seconds. NOTE: Only valid for Elephant's Dream
-  private double chunkDuration[] = {10.00, 10.00, 10.28, 10.00, 12.56, 14.08, 10.00, 17.20, 12.40, 15.64, 11.48, 12.68, 10.48, 10.56, 14.80, 14.48, 11.28, 15.92, 10.88, 10.40, 12.20, 11.20, 12.24, 10.00, 9.24};
-
+  private static final int AHEAD_CHUNKS = 3;
   public static final int DEFAULT_MAX_INITIAL_BITRATE = 800000;
   public static final float DEFAULT_BANDWIDTH_FRACTION = 0.75f;
-
 
   private int selectedIndex = 0;
   private int reason;
@@ -45,14 +30,15 @@ public class LookAheadTrackSelection extends BaseTrackSelection {
    * @param group  The {@link TrackGroup}. Must not be null.
    * @param tracks The indices of the selected tracks within the {@link TrackGroup}. Must not be
    */
+  @DebugLog
   public LookAheadTrackSelection(TrackGroup group, int[] tracks, BandwidthMeter bandwidthMeter) {
     super(group, tracks);
     this.bandwidthMeter = bandwidthMeter;
   }
 
   @Override
+  @DebugLog
   public int getSelectedIndex() {
-    if (V) Timber.d("COMMLA: getSelectedIndex: %d", selectedIndex);
     return selectedIndex;
   }
 
@@ -67,37 +53,50 @@ public class LookAheadTrackSelection extends BaseTrackSelection {
   }
 
   @Override
+  @DebugLog
   public void updateSelectedTrack(long bufferedDurationUs, long playbackPositionUs, long bufferEndTime) {
-    if (V) Timber.d("COMMLA: playback position: %f, buffer %f", playbackPositionUs / 1000_000f, bufferedDurationUs / 1000_000f);
-    int lastDashChunkBufferedIndex = getLastDashChunkBufferedIndex(bufferEndTime / 1000_000f);
-    //if (V) Timber.d("COMMLA: Index of las buffered dash chunk: %d", lastDashChunkBufferedIndex);
+    // init all tracks
+    int uninitializedTrackIndex = selectUninitializedTrack();
+    if (!(uninitializedTrackIndex < 0)) {
+      selectedIndex = uninitializedTrackIndex;
+      return;
+    }
 
 
+
+    // get the next time position we need to download
+    long downloadedPlaybackPosition = Math.max(playbackPositionUs, bufferEndTime);
+    // get the indices for all tracks (are they always the same?)
+    int nextIndex = getNextChunkIndex(downloadedPlaybackPosition);
+
+    long aheadDuration = getAheadTime(nextIndex, AHEAD_CHUNKS);
+    float aheadDurationS = aheadDuration / 1000_000f;
+    int[] aheadSizes = getAheadSizes(nextIndex, AHEAD_CHUNKS);
+
+
+
+
+    // get bandwidth estimation
     long bitrateEstimate = bandwidthMeter.getBitrateEstimate();
-
-    float aheadDuration = getAheadDuration(lastDashChunkBufferedIndex, AHEAD_CHUNKS);
-
-      selectedIndex = length-1;
-      float neededBandwidth = 0;
-      float effectiveBitrate = bitrateEstimate == BandwidthMeter.NO_ESTIMATE
+    selectedIndex = length - 1;
+    float effectiveBitrate = bitrateEstimate == BandwidthMeter.NO_ESTIMATE
         ? DEFAULT_MAX_INITIAL_BITRATE : (long) (bitrateEstimate * DEFAULT_BANDWIDTH_FRACTION);
-      effectiveBitrate = effectiveBitrate/1.5f;
+    effectiveBitrate = 5_000_000f;
 
 
-      for (int i = 0; i < length; i++) {
-        float aheadTrackSize = getAheadTrackSize(i, lastDashChunkBufferedIndex, AHEAD_CHUNKS);
-        neededBandwidth = aheadTrackSize * 8F / aheadDuration;
-        //if (V) Timber.d("COMMLA: -------------> %f", neededBandwidth);
-        //System.out.println("/////////////// i: "+i+", lastDashChunkBufferedIndex: "+lastDashChunkBufferedIndex+", aheadTrackSize: "+aheadTrackSize+" neededBandwidth: "+neededBandwidth);
-        if (V) Timber.d("COMMLA: --------------------------------------> needBandwidth: "+neededBandwidth+", i: "+i);
-        if (effectiveBitrate>neededBandwidth){
-          selectedIndex = i;
-          break;
-        }
+    for (int i = 0; i < length; i++) {
+      float aheadTrackSize = aheadSizes[i];
+      float neededBandwidth = aheadTrackSize * 8F / aheadDurationS ;
+      Timber.d("Track %d, needed bandwidth: %f, effective bitrate: %f", i, neededBandwidth, effectiveBitrate);
+      if (effectiveBitrate > neededBandwidth) {
+        selectedIndex = i;
+        Timber.d("Selected Index: %d", selectedIndex);
+        break;
       }
-      if (V) Timber.d("COMMLA: --------> needBandwidth: "+neededBandwidth+", effectiveBitrate: "+effectiveBitrate+", selectedIndex: "+selectedIndex);
-    //selectedIndex = ++selectedIndex % length;
+    }
   }
+
+
 
 
   /**
@@ -118,31 +117,137 @@ public class LookAheadTrackSelection extends BaseTrackSelection {
 
   }
 
-  public int getLastDashChunkBufferedIndex(float bufferEndTime) {
-    if (V) Timber.d("COMMLA: getLastDashChunkBufferedIndex: %f", bufferEndTime);
-    for (int i = 0; i < chunkTimeRanges[1].length; i++) {
-      if ((int) chunkTimeRanges[1][i] == (int) bufferEndTime) {
+//  public int getLastDashChunkBufferedIndex(float bufferEndTime) {
+//    for (int i = 0; i < chunkTimeRanges[1].length; i++) {
+//      if ((int) chunkTimeRanges[1][i] == (int) bufferEndTime) {
+//        return i;
+//      }
+//    }
+//    return -1;
+//  }
+//
+//  public float getAheadDuration(int currentChunk, int aheadChunks) {
+//    float size = 0;
+//    for (int i = currentChunk + 1; i <= currentChunk + aheadChunks; i++) {
+//      if (i < chunkDuration.length)
+//        size += chunkDuration[i];
+//    }
+//    return size;
+//  }
+//
+//  public int getAheadTrackSize(int trackIndex, int currentChunk, int aheadChunks) {
+//    int size = 0;
+//    int[] trackChunkSizes = chunkSizes[trackIndex];
+//    for (int i = currentChunk + 1; i <= currentChunk + aheadChunks; i++) {
+//      if (i < trackChunkSizes.length)
+//        size += trackChunkSizes[i];
+//    }
+//    return size;
+//  }
+
+
+  /**
+   * Select an uninitialized track
+   * @return the index of an uninitialized track of -1 if all are initialized
+   */
+  private int selectUninitializedTrack() {
+    for (int i = 0; i < chunkIndices.length; i++) {
+      if (chunkIndices[i] == null)
         return i;
-      }
     }
     return -1;
   }
 
-  public float getAheadDuration(int currentChunk, int aheadChunks) {
-    float size = 0;
-    for (int i = currentChunk + 1; i <= currentChunk + aheadChunks; i++) {
-      if (i < chunkDuration.length)
-        size += chunkDuration[i];
+  /**
+   * Gets the indexes where the given time
+   * @param time the time to find the index
+   * @return a list of indices for all tracks
+   */
+  @DebugLog
+  private int[] nextChunkIndices(long time) {
+    int[] nextChunkIndices = new int[length];
+    Arrays.fill(nextChunkIndices, -1);
+    for (int i = 0; i < chunkIndices.length; i++) {
+      if (chunkIndices[i] != null) {
+        nextChunkIndices[i] = getNextChunkIndex(i, time);
+      }
     }
-    return size;
+    return nextChunkIndices;
   }
 
-  public int getAheadTrackSize(int trackIndex, int currentChunk, int aheadChunks) {
+  private int getNextChunkIndex(long time){
+    return getNextChunkIndex(0, time);
+  }
+
+  private int getNextChunkIndex(int track, long time){
+    return chunkIndices[track].getChunkIndex(time);
+  }
+
+  /**
+   * Gets ahead times for a given time and ahead chunk count
+   * @param index the current index
+   * @param aheadPositions the ahead chunk count
+   * @return the ahead times
+   */
+  private long[] getAheadTimes(int index, int aheadPositions){
+    long[] aheadTimes = new long[length];
+    Arrays.fill(aheadTimes, 0);
+    for (int i = 0; i < chunkIndices.length; i++) {
+      if (chunkIndices[i] != null) {
+        aheadTimes[i] = getAheadTime(i, index, aheadPositions);
+      }
+    }
+    return aheadTimes;
+  }
+
+  @DebugLog
+  private long getAheadTime(int index, int aheadPositions){
+    return getAheadTime(0,index, aheadPositions);
+  }
+
+  private long getAheadTime(int track, int index, int aheadPositions) {
+    long aheadTime = 0;
+    ChunkIndex chunkIndex = chunkIndices[track];
+
+    if (chunkIndex != null) {
+      long[] durationsUs = chunkIndex.durationsUs;
+      for (int i = index; i < index + aheadPositions; i++) {
+        if (i < durationsUs.length)
+          aheadTime += durationsUs[i];
+      }
+    }
+    return aheadTime;
+  }
+
+  /**
+   * Gets ahead sizes for a given time and ahead chunk count
+   * @param index the current index
+   * @param aheadPositions the ahead chunk count
+   * @return the ahead times
+   */
+  @DebugLog
+  private int[] getAheadSizes(int index, int aheadPositions){
+    int[] aheadSizes = new int[length];
+    Arrays.fill(aheadSizes, 0);
+    for (int i = 0; i < chunkIndices.length; i++) {
+      if (chunkIndices[i] != null) {
+        aheadSizes[i] = getAheadSize(i, index, aheadPositions);
+      }
+    }
+    return aheadSizes;
+  }
+
+  private int getAheadSize(int track ,int index, int aheadPositions){
     int size = 0;
-    int[] trackChunkSizes = chunkSizes[trackIndex];
-    for (int i = currentChunk + 1; i <= currentChunk + aheadChunks; i++) {
-      if (i < trackChunkSizes.length)
-        size += trackChunkSizes[i];
+
+    ChunkIndex chunkIndex = chunkIndices[track];
+
+    if (chunkIndex != null) {
+      int[] sizes = chunkIndex.sizes;
+      for (int i = index; i < index + aheadPositions; i++) {
+        if (i < sizes.length)
+          size += sizes[i];
+      }
     }
     return size;
   }

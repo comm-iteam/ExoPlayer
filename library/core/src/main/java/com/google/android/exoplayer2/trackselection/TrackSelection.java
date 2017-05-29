@@ -17,6 +17,7 @@ package com.google.android.exoplayer2.trackselection;
 
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.Format;
+import com.google.android.exoplayer2.extractor.ChunkIndex;
 import com.google.android.exoplayer2.source.TrackGroup;
 import com.google.android.exoplayer2.source.chunk.MediaChunk;
 import java.util.List;
@@ -160,5 +161,7 @@ public interface TrackSelection {
    * @return Whether blacklisting was successful.
    */
   boolean blacklist(int index, long blacklistDurationMs);
+
+  void dashSegmentIndexLoaded(int trackIndex, ChunkIndex chunkIndex);
 
 }
