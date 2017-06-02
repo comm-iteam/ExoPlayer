@@ -259,7 +259,7 @@ import java.util.Locale;
 
   @Override
   public void onVideoInputFormatChanged(Format format) {
-    Log.d(TAG, "videoFormatChanged [" + getSessionTimeString() + ", " + Format.toLogString(format)
+    Log.d(TAG, "videoFormatChan [" + getSessionTimeString() + ", " + Format.toLogString(format)
         + "]");
   }
 

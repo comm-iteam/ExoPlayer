@@ -20,6 +20,9 @@ import android.os.SystemClock;
 import com.google.android.exoplayer2.util.Assertions;
 import com.google.android.exoplayer2.util.SlidingPercentile;
 
+import hugo.weaving.DebugLog;
+import timber.log.Timber;
+
 /**
  * Estimates bandwidth by listening to data transfers. The bandwidth estimate is calculated using
  * a {@link SlidingPercentile} and is updated each time a transfer ends.
@@ -80,14 +83,16 @@ public final class DefaultBandwidthMeter implements BandwidthMeter, TransferList
   }
 
   @Override
+  @DebugLog
   public synchronized void onTransferEnd(Object source) {
     Assertions.checkState(streamCount > 0);
     long nowMs = SystemClock.elapsedRealtime();
     int sampleElapsedTimeMs = (int) (nowMs - sampleStartTimeMs);
     totalElapsedTimeMs += sampleElapsedTimeMs;
     totalBytesTransferred += sampleBytesTransferred;
+    float bitsPerSecond = 0;
     if (sampleElapsedTimeMs > 0) {
-      float bitsPerSecond = (sampleBytesTransferred * 8000) / sampleElapsedTimeMs;
+      bitsPerSecond = (sampleBytesTransferred * 8000) / sampleElapsedTimeMs;
       slidingPercentile.addSample((int) Math.sqrt(sampleBytesTransferred), bitsPerSecond);
       if (totalElapsedTimeMs >= ELAPSED_MILLIS_FOR_ESTIMATE
           || totalBytesTransferred >= BYTES_TRANSFERRED_FOR_ESTIMATE) {
@@ -96,13 +101,16 @@ public final class DefaultBandwidthMeter implements BandwidthMeter, TransferList
             : (long) bitrateEstimateFloat;
       }
     }
-    notifyBandwidthSample(sampleElapsedTimeMs, sampleBytesTransferred, bitrateEstimate);
+    Timber.d("http_download_finished_bitrate: %d, %d", SystemClock.elapsedRealtime(), (int)bitsPerSecond);
+    Timber.d("http_download_finished_estimated_bitrate: %d, %d", SystemClock.elapsedRealtime(), bitrateEstimate);
+    notifyBandwidthSample(sampleElapsedTimeMs, sampleBytesTransferred, (long)bitsPerSecond);
     if (--streamCount > 0) {
       sampleStartTimeMs = nowMs;
     }
     sampleBytesTransferred = 0;
   }
 
+  @DebugLog
   private void notifyBandwidthSample(final int elapsedMs, final long bytes, final long bitrate) {
     if (eventHandler != null && eventListener != null) {
       eventHandler.post(new Runnable()  {

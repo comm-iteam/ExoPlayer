@@ -41,7 +41,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-import hugo.weaving.DebugLog;
 
 /**
  * A DASH {@link MediaPeriod}.
@@ -87,7 +86,6 @@ import hugo.weaving.DebugLog;
     embeddedTrackInfos = result.second;
   }
 
-  @DebugLog
   public void updateManifest(DashManifest manifest, int periodIndex) {
     this.manifest = manifest;
     this.periodIndex = periodIndex;

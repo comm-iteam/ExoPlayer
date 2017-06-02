@@ -17,7 +17,6 @@ package com.google.android.exoplayer2.extractor;
 
 import com.google.android.exoplayer2.util.Util;
 
-import hugo.weaving.DebugLog;
 
 /**
  * Defines chunks of samples within a media stream.
@@ -57,7 +56,6 @@ public final class ChunkIndex implements SeekMap {
    * @param durationsUs The chunk durations, in microseconds.
    * @param timesUs The start time of each chunk, in microseconds.
    */
-  @DebugLog
   public ChunkIndex(int[] sizes, long[] offsets, long[] durationsUs, long[] timesUs) {
     this.sizes = sizes;
     this.offsets = offsets;

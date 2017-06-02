@@ -44,6 +44,10 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import hugo.weaving.DebugLog;
+import timber.log.Timber;
+
+
 /**
  * An abstract renderer that uses {@link MediaCodec} to decode samples for rendering.
  */
@@ -762,6 +766,10 @@ public abstract class MediaCodecRenderer extends BaseRenderer {
   protected void onInputFormatChanged(Format newFormat) throws ExoPlaybackException {
     Format oldFormat = format;
     format = newFormat;
+    if (oldFormat != null) {
+      Timber.d("formatchange: %d, %s", buffer.timeUs, oldFormat.id);
+    }
+    Timber.d("formatchange: %d, %s", buffer.timeUs, newFormat.id);
 
     boolean drmInitDataChanged = !Util.areEqual(format.drmInitData, oldFormat == null ? null
         : oldFormat.drmInitData);

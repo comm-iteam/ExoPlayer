@@ -17,6 +17,8 @@ package com.google.android.exoplayer2.source;
 
 import com.google.android.exoplayer2.C;
 
+import hugo.weaving.DebugLog;
+
 /**
  * A {@link SequenceableLoader} that encapsulates multiple other {@link SequenceableLoader}s.
  */

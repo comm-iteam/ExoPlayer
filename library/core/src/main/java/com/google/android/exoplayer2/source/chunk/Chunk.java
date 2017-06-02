@@ -99,9 +99,5 @@ public abstract class Chunk implements Loadable {
    */
   public abstract long bytesLoaded();
 
-  @Override
-  public String toString() {
-    return "Chunk["+startTimeUs / 1000000f +", "+endTimeUs / 1000000f+"]";
-  }
 
 }

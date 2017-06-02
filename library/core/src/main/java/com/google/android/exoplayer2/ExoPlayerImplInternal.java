@@ -36,6 +36,9 @@ import com.google.android.exoplayer2.util.StandaloneMediaClock;
 import com.google.android.exoplayer2.util.TraceUtil;
 import java.io.IOException;
 
+import hugo.weaving.DebugLog;
+import timber.log.Timber;
+
 /**
  * Implements the internal behavior of {@link ExoPlayerImpl}.
  */
@@ -453,6 +456,10 @@ import java.io.IOException;
     playbackInfo.bufferedPositionUs = bufferedPositionUs == C.TIME_END_OF_SOURCE
         ? timeline.getPeriod(playingPeriodHolder.index, period).getDurationUs()
         : bufferedPositionUs;
+    Timber.d("frame_playback_buffer: %d, %d",
+        playbackInfo.positionUs, playbackInfo.bufferedPositionUs - playbackInfo.positionUs);
+    Timber.d("real_playback_buffer: %d, %d",
+        SystemClock.elapsedRealtime(), playbackInfo.bufferedPositionUs - playbackInfo.positionUs);
   }
 
   private void doSomeWork() throws ExoPlaybackException, IOException {
@@ -473,6 +480,7 @@ import java.io.IOException;
     boolean allRenderersEnded = true;
     boolean allRenderersReadyOrEnded = true;
     for (Renderer renderer : enabledRenderers) {
+//      Timber.d("Renderer: %s, type: %d", renderer, renderer.getTrackType());
       // TODO: Each renderer should return the maximum delay before which it wishes to be called
       // again. The minimum of these values should then be used as the delay before the next
       // invocation of this method.

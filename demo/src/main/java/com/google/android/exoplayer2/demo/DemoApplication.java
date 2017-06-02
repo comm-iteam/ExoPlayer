@@ -39,7 +39,10 @@ public class DemoApplication extends Application {
 
     if (BuildConfig.DEBUG) {
       Timber.plant(new Timber.DebugTree());
+      Timber.plant(new FileLoggingTree(this));
     }
+
+
   }
 
   public DataSource.Factory buildDataSourceFactory(DefaultBandwidthMeter bandwidthMeter) {

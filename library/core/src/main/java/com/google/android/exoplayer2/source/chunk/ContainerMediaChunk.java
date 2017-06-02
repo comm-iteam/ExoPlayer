@@ -121,4 +121,13 @@ public class ContainerMediaChunk extends BaseMediaChunk {
     loadCompleted = true;
   }
 
+
+  @Override
+  public String toString() {
+    return "ContainerMediaChunk[ index: "+ chunkIndex + ", id:"+ trackFormat.id + ", uri:"+ dataSpec.uri + ""+startTimeUs / 1000000f +", "+endTimeUs / 1000000f+"]";
+//    return "ContainerMediaChunk[ index: "+ chunkIndex +", id:"+ trackFormat.id + ", "+startTimeUs / 1000000f +", "+endTimeUs / 1000000f+"]";
+  }
+
+
+
 }

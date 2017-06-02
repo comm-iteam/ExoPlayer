@@ -27,6 +27,8 @@ import com.google.android.exoplayer2.util.Util;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 
+import hugo.weaving.DebugLog;
+
 /**
  * Manages the background loading of {@link Loadable}s.
  */
@@ -156,6 +158,7 @@ public final class Loader implements LoaderErrorThrower {
    * @throws IllegalStateException If the calling thread does not have an associated {@link Looper}.
    * @return {@link SystemClock#elapsedRealtime} when the load started.
    */
+  @DebugLog
   public <T extends Loadable> long startLoading(T loadable, Callback<T> callback,
       int defaultMinRetryCount) {
     Looper looper = Looper.myLooper();

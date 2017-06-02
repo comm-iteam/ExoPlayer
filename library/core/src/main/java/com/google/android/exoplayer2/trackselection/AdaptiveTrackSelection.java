@@ -24,7 +24,6 @@ import com.google.android.exoplayer2.upstream.BandwidthMeter;
 
 import java.util.List;
 
-import hugo.weaving.DebugLog;
 import timber.log.Timber;
 
 /**
@@ -158,7 +157,6 @@ public class AdaptiveTrackSelection extends BaseTrackSelection {
   }
 
   @Override
-  @DebugLog
   public void updateSelectedTrack(long bufferedDurationUs, long playbackPositionUs, long bufferEndTime) {
     if (V)  Timber.d("COMM: updateSelectedTrack | bufferedDuration(ms): %d", bufferedDurationUs/1000L);
   //  Timber.d("COMM: bandwidth: %d", bandwidthMeter.getBitrateEstimate());

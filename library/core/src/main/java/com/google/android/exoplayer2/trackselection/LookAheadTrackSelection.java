@@ -81,7 +81,7 @@ public class LookAheadTrackSelection extends BaseTrackSelection {
     selectedIndex = length - 1;
     float effectiveBitrate = bitrateEstimate == BandwidthMeter.NO_ESTIMATE
         ? DEFAULT_MAX_INITIAL_BITRATE : (long) (bitrateEstimate * DEFAULT_BANDWIDTH_FRACTION);
-    effectiveBitrate = 5_000_000f;
+//    effectiveBitrate = 5_000_000f;
 
 
     for (int i = 0; i < length; i++) {
@@ -95,9 +95,6 @@ public class LookAheadTrackSelection extends BaseTrackSelection {
       }
     }
   }
-
-
-
 
   /**
    * Factory for {@link AdaptiveTrackSelection} instances.
@@ -116,35 +113,6 @@ public class LookAheadTrackSelection extends BaseTrackSelection {
     }
 
   }
-
-//  public int getLastDashChunkBufferedIndex(float bufferEndTime) {
-//    for (int i = 0; i < chunkTimeRanges[1].length; i++) {
-//      if ((int) chunkTimeRanges[1][i] == (int) bufferEndTime) {
-//        return i;
-//      }
-//    }
-//    return -1;
-//  }
-//
-//  public float getAheadDuration(int currentChunk, int aheadChunks) {
-//    float size = 0;
-//    for (int i = currentChunk + 1; i <= currentChunk + aheadChunks; i++) {
-//      if (i < chunkDuration.length)
-//        size += chunkDuration[i];
-//    }
-//    return size;
-//  }
-//
-//  public int getAheadTrackSize(int trackIndex, int currentChunk, int aheadChunks) {
-//    int size = 0;
-//    int[] trackChunkSizes = chunkSizes[trackIndex];
-//    for (int i = currentChunk + 1; i <= currentChunk + aheadChunks; i++) {
-//      if (i < trackChunkSizes.length)
-//        size += trackChunkSizes[i];
-//    }
-//    return size;
-//  }
-
 
   /**
    * Select an uninitialized track

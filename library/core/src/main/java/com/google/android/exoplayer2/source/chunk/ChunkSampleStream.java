@@ -15,6 +15,8 @@
  */
 package com.google.android.exoplayer2.source.chunk;
 
+import android.os.SystemClock;
+
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.FormatHolder;
@@ -32,6 +34,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import hugo.weaving.DebugLog;
+import timber.log.Timber;
+
 
 /**
  * A {@link SampleStream} that loads media in {@link Chunk}s, obtained from a {@link ChunkSource}.
@@ -72,7 +76,6 @@ public class ChunkSampleStream<T extends ChunkSource> implements SampleStream, S
    *     before propagating an error.
    * @param eventDispatcher A dispatcher to notify of events.
    */
-  @DebugLog
   public ChunkSampleStream(int primaryTrackType, int[] embeddedTrackTypes, T chunkSource,
       Callback<ChunkSampleStream<T>> callback, Allocator allocator, long positionUs,
       int minLoadableRetryCount, EventDispatcher eventDispatcher) {
@@ -245,6 +248,10 @@ public class ChunkSampleStream<T extends ChunkSource> implements SampleStream, S
   @Override
   public int readData(FormatHolder formatHolder, DecoderInputBuffer buffer,
       boolean formatRequired) {
+    if (formatHolder != null && formatHolder.format != null) {
+      Timber.d("real_playback_read_format: %d, %d",
+          SystemClock.elapsedRealtime(), formatHolder.format.bitrate);
+    }
     if (isPendingReset()) {
       return C.RESULT_NOTHING_READ;
     }
@@ -354,6 +361,8 @@ public class ChunkSampleStream<T extends ChunkSource> implements SampleStream, S
       BaseMediaChunk mediaChunk = (BaseMediaChunk) loadable;
       mediaChunk.init(mediaChunkOutput);
       mediaChunks.add(mediaChunk);
+      Timber.d("selectedchunk: %d, %s", mediaChunk.startTimeUs, 2 - Integer.parseInt(mediaChunk.trackFormat.id));
+      Timber.d("selectedchunk: %d, %s", mediaChunk.endTimeUs, 2 - Integer.parseInt(mediaChunk.trackFormat.id));
     }
     long elapsedRealtimeMs = loader.startLoading(loadable, this, minLoadableRetryCount);
     eventDispatcher.loadStarted(loadable.dataSpec, loadable.type, primaryTrackType,

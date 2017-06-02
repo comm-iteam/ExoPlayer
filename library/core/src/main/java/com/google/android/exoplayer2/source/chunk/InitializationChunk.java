@@ -27,7 +27,6 @@ import com.google.android.exoplayer2.util.Assertions;
 import com.google.android.exoplayer2.util.Util;
 import java.io.IOException;
 
-import hugo.weaving.DebugLog;
 import timber.log.Timber;
 
 /**
@@ -48,7 +47,6 @@ public final class InitializationChunk extends Chunk {
    * @param trackSelectionData See {@link #trackSelectionData}.
    * @param extractorWrapper A wrapped extractor to use for parsing the initialization data.
    */
-  @DebugLog
   public InitializationChunk(DataSource dataSource, DataSpec dataSpec, Format trackFormat,
       int trackSelectionReason, Object trackSelectionData,
       ChunkExtractorWrapper extractorWrapper) {
@@ -64,7 +62,6 @@ public final class InitializationChunk extends Chunk {
   }
 
   @Override
-  @DebugLog
   public long bytesLoaded() {
     return bytesLoaded;
   }
@@ -72,7 +69,6 @@ public final class InitializationChunk extends Chunk {
   // Loadable implementation.
 
   @Override
-  @DebugLog
   public void cancelLoad() {
     loadCanceled = true;
   }
@@ -84,7 +80,6 @@ public final class InitializationChunk extends Chunk {
 
   @SuppressWarnings("NonAtomicVolatileUpdate")
   @Override
-  @DebugLog
   public void load() throws IOException, InterruptedException {
     DataSpec loadDataSpec = Util.getRemainderDataSpec(dataSpec, bytesLoaded);
     try {

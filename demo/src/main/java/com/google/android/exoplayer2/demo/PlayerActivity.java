@@ -75,7 +75,6 @@ import java.net.CookieManager;
 import java.net.CookiePolicy;
 import java.util.UUID;
 
-import hugo.weaving.DebugLog;
 
 /**
  * An activity that plays media using {@link SimpleExoPlayer}.
@@ -125,7 +124,6 @@ public class PlayerActivity extends Activity implements OnClickListener, ExoPlay
   // Activity lifecycle
 
   @Override
-  @DebugLog
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     shouldAutoPlay = true;
