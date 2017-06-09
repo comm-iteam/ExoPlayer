@@ -6,6 +6,7 @@ import android.util.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.nio.charset.Charset;
 
 import ch.qos.logback.classic.Level;
@@ -28,6 +29,11 @@ public class FileLoggingTree extends Timber.DebugTree {
   public FileLoggingTree(Context context) {
     System.out.println("Log path: " + context.getExternalFilesDir("logs"));
     final String logDirectory = context.getExternalFilesDir("logs") +"" ;
+
+    File logs = context.getExternalFilesDir("logs");
+    File defaultLog = new File(logs, "my-log-latest.txt");
+    defaultLog.delete();
+
     configureLogger(logDirectory);
   }
 

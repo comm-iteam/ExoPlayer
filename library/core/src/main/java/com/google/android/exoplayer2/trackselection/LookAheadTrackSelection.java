@@ -80,7 +80,7 @@ public class LookAheadTrackSelection extends BaseTrackSelection {
     long bitrateEstimate = bandwidthMeter.getBitrateEstimate();
     selectedIndex = length - 1;
     float effectiveBitrate = bitrateEstimate == BandwidthMeter.NO_ESTIMATE
-        ? DEFAULT_MAX_INITIAL_BITRATE : (long) (bitrateEstimate * DEFAULT_BANDWIDTH_FRACTION);
+        ? DEFAULT_MAX_INITIAL_BITRATE : (long) (bitrateEstimate );
 //    effectiveBitrate = 5_000_000f;
 
 

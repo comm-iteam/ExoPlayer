@@ -94,16 +94,15 @@ public final class DefaultBandwidthMeter implements BandwidthMeter, TransferList
     if (sampleElapsedTimeMs > 0) {
       bitsPerSecond = (sampleBytesTransferred * 8000) / sampleElapsedTimeMs;
       slidingPercentile.addSample((int) Math.sqrt(sampleBytesTransferred), bitsPerSecond);
-      if (totalElapsedTimeMs >= ELAPSED_MILLIS_FOR_ESTIMATE
-          || totalBytesTransferred >= BYTES_TRANSFERRED_FOR_ESTIMATE) {
+      if (totalElapsedTimeMs >= ELAPSED_MILLIS_FOR_ESTIMATE || totalBytesTransferred >= BYTES_TRANSFERRED_FOR_ESTIMATE) {
         float bitrateEstimateFloat = slidingPercentile.getPercentile(0.5f);
-        bitrateEstimate = Float.isNaN(bitrateEstimateFloat) ? NO_ESTIMATE
-            : (long) bitrateEstimateFloat;
+        bitrateEstimate = Float.isNaN(bitrateEstimateFloat) ? NO_ESTIMATE : (long) bitrateEstimateFloat;
       }
     }
-    Timber.d("http_download_finished_bitrate: %d, %d", SystemClock.elapsedRealtime(), (int)bitsPerSecond);
+    Timber.d("http_download_finished_bitrate: %d, %f", SystemClock.elapsedRealtime(), bitsPerSecond);
     Timber.d("http_download_finished_estimated_bitrate: %d, %d", SystemClock.elapsedRealtime(), bitrateEstimate);
-    notifyBandwidthSample(sampleElapsedTimeMs, sampleBytesTransferred, (long)bitsPerSecond);
+    Timber.d("http_download_finished_sample_bytes: %d, %d", SystemClock.elapsedRealtime(), sampleBytesTransferred);
+    notifyBandwidthSample(sampleElapsedTimeMs, sampleBytesTransferred, bitrateEstimate);
     if (--streamCount > 0) {
       sampleStartTimeMs = nowMs;
     }

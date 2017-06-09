@@ -456,10 +456,12 @@ import timber.log.Timber;
     playbackInfo.bufferedPositionUs = bufferedPositionUs == C.TIME_END_OF_SOURCE
         ? timeline.getPeriod(playingPeriodHolder.index, period).getDurationUs()
         : bufferedPositionUs;
-    Timber.d("frame_playback_buffer: %d, %d",
-        playbackInfo.positionUs, playbackInfo.bufferedPositionUs - playbackInfo.positionUs);
-    Timber.d("real_playback_buffer: %d, %d",
-        SystemClock.elapsedRealtime(), playbackInfo.bufferedPositionUs - playbackInfo.positionUs);
+    if (C.V) {
+      Timber.d("frame_playback_buffer: %d, %d",
+          playbackInfo.positionUs, playbackInfo.bufferedPositionUs - playbackInfo.positionUs);
+      Timber.d("real_playback_buffer: %d, %d",
+          SystemClock.elapsedRealtime(), playbackInfo.bufferedPositionUs - playbackInfo.positionUs);
+    }
   }
 
   private void doSomeWork() throws ExoPlaybackException, IOException {

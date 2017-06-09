@@ -248,7 +248,7 @@ public class ChunkSampleStream<T extends ChunkSource> implements SampleStream, S
   @Override
   public int readData(FormatHolder formatHolder, DecoderInputBuffer buffer,
       boolean formatRequired) {
-    if (formatHolder != null && formatHolder.format != null) {
+    if (C.V && formatHolder != null && formatHolder.format != null) {
       Timber.d("real_playback_read_format: %d, %d",
           SystemClock.elapsedRealtime(), formatHolder.format.bitrate);
     }
@@ -361,8 +361,8 @@ public class ChunkSampleStream<T extends ChunkSource> implements SampleStream, S
       BaseMediaChunk mediaChunk = (BaseMediaChunk) loadable;
       mediaChunk.init(mediaChunkOutput);
       mediaChunks.add(mediaChunk);
-      Timber.d("selectedchunk: %d, %s", mediaChunk.startTimeUs, 2 - Integer.parseInt(mediaChunk.trackFormat.id));
-      Timber.d("selectedchunk: %d, %s", mediaChunk.endTimeUs, 2 - Integer.parseInt(mediaChunk.trackFormat.id));
+      Timber.d("selectedchunk: %d, %s", mediaChunk.startTimeUs, Integer.parseInt(mediaChunk.trackFormat.id));
+      Timber.d("selectedchunk: %d, %s", mediaChunk.endTimeUs, Integer.parseInt(mediaChunk.trackFormat.id));
     }
     long elapsedRealtimeMs = loader.startLoading(loadable, this, minLoadableRetryCount);
     eventDispatcher.loadStarted(loadable.dataSpec, loadable.type, primaryTrackType,

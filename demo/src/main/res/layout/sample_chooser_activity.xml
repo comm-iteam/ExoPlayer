@@ -18,8 +18,38 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-  <ExpandableListView android:id="@+id/sample_list"
+  <LinearLayout
       android:layout_width="match_parent"
-      android:layout_height="match_parent"/>
+      android:layout_height="wrap_content"
+      android:background="@android:color/darker_gray"
+      android:gravity="center"
+      android:orientation="horizontal">
+
+    <RadioGroup
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        >
+
+      <RadioButton
+          android:id="@+id/lookAheadRadioButton"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_weight="1"
+          android:checked="true"
+          android:text="@string/lookaheadtrackselection"/>
+
+      <RadioButton
+          android:id="@+id/adaptiveRadioButton"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_weight="1"
+          android:text="@string/adaptivetrackselection"/>
+
+    </RadioGroup>
+  </LinearLayout>
+
+  <ExpandableListView android:id="@+id/sample_list"
+                      android:layout_width="match_parent"
+                      android:layout_height="match_parent"/>
 
 </LinearLayout>

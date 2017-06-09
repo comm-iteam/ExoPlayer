@@ -87,6 +87,10 @@ public class PlayerActivity extends Activity implements OnClickListener, ExoPlay
   public static final String DRM_KEY_REQUEST_PROPERTIES = "drm_key_request_properties";
   public static final String PREFER_EXTENSION_DECODERS = "prefer_extension_decoders";
 
+  public static final String ADAPTATION_ALGORITHM_EXTRA = "adaptation_algorithm_extra";
+  public static final int ADAPTATION_ALGORITHM_LOOK_AHEAD = 0;
+  public static final int ADAPTATION_ALGORITHM_DEFAULT = 1;
+
   public static final String ACTION_VIEW = "com.google.android.exoplayer.demo.action.VIEW";
   public static final String EXTENSION_EXTRA = "extension";
 
@@ -263,8 +267,21 @@ public class PlayerActivity extends Activity implements OnClickListener, ExoPlay
       DefaultRenderersFactory renderersFactory = new DefaultRenderersFactory(this,
           drmSessionManager, extensionRendererMode);
 
-      TrackSelection.Factory adaptiveTrackSelectionFactory =
-          new LookAheadTrackSelection.Factory(BANDWIDTH_METER);
+      int algorithm = getIntent().getIntExtra(ADAPTATION_ALGORITHM_EXTRA, ADAPTATION_ALGORITHM_LOOK_AHEAD);
+
+      TrackSelection.Factory adaptiveTrackSelectionFactory = null;
+
+      switch (algorithm){
+        case ADAPTATION_ALGORITHM_DEFAULT:
+          adaptiveTrackSelectionFactory =
+              new AdaptiveTrackSelection.Factory(BANDWIDTH_METER);
+          break;
+        case ADAPTATION_ALGORITHM_LOOK_AHEAD:
+          adaptiveTrackSelectionFactory =
+              new LookAheadTrackSelection.Factory(BANDWIDTH_METER);
+          break;
+      }
+
       trackSelector = new DefaultTrackSelector(adaptiveTrackSelectionFactory);
       trackSelectionHelper = new TrackSelectionHelper(trackSelector, adaptiveTrackSelectionFactory);
       lastSeenTrackGroupArray = null;

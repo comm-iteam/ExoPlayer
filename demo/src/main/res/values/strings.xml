@@ -58,4 +58,7 @@
 
   <string name="sample_list_load_error">One or more sample lists failed to load</string>
 
+  <string name="adaptivetrackselection">AdaptiveTrackSelection</string>
+  <string name="lookaheadtrackselection">LookAheadTrackSelection</string>
+
 </resources>

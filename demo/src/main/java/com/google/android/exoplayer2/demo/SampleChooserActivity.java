@@ -30,6 +30,7 @@ import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.ExpandableListView;
 import android.widget.ExpandableListView.OnChildClickListener;
+import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.google.android.exoplayer2.C;
@@ -48,6 +49,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import hugo.weaving.DebugLog;
+
 /**
  * An activity for selecting from a list of samples.
  */
@@ -55,10 +58,17 @@ public class SampleChooserActivity extends Activity {
 
   private static final String TAG = "SampleChooserActivity";
 
+  private RadioButton lookAheadRadioBtn;
+  private RadioButton adaptiveRadioBtn;
+
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.sample_chooser_activity);
+
+    lookAheadRadioBtn = (RadioButton)findViewById(R.id.lookAheadRadioButton);
+    adaptiveRadioBtn = (RadioButton)findViewById(R.id.adaptiveRadioButton);
+
     Intent intent = getIntent();
     String dataUri = intent.getDataString();
     String[] uris;
@@ -102,8 +112,18 @@ public class SampleChooserActivity extends Activity {
     });
   }
 
+  @DebugLog
   private void onSampleSelected(Sample sample) {
-    startActivity(sample.buildIntent(this));
+    int algorithm;
+    if (lookAheadRadioBtn.isChecked()){
+      algorithm = PlayerActivity.ADAPTATION_ALGORITHM_LOOK_AHEAD;
+    }else {
+      algorithm = PlayerActivity.ADAPTATION_ALGORITHM_DEFAULT;
+    }
+
+    Intent i = sample.buildIntent(this);
+    i.putExtra(PlayerActivity.ADAPTATION_ALGORITHM_EXTRA, algorithm);
+    startActivity(i);
   }
 
   private final class SampleListLoader extends AsyncTask<String, Void, List<SampleGroup>> {
