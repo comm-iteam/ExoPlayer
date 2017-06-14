@@ -18,6 +18,7 @@ package com.google.android.exoplayer2.demo;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.Surface;
+
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayer;
@@ -48,9 +49,12 @@ import com.google.android.exoplayer2.trackselection.TrackSelection;
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.upstream.DataSpec;
 import com.google.android.exoplayer2.video.VideoRendererEventListener;
+
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.Locale;
+
+import timber.log.Timber;
 
 /**
  * Logs player events using {@link Log}.
@@ -63,6 +67,7 @@ import java.util.Locale;
   private static final String TAG = "EventLogger";
   private static final int MAX_TIMELINE_ITEM_LINES = 3;
   private static final NumberFormat TIME_FORMAT;
+
   static {
     TIME_FORMAT = NumberFormat.getInstance(Locale.US);
     TIME_FORMAT.setMinimumFractionDigits(2);
@@ -74,6 +79,11 @@ import java.util.Locale;
   private final Timeline.Window window;
   private final Timeline.Period period;
   private final long startTimeMs;
+
+  private int playerState = ExoPlayer.STATE_IDLE;
+  private int stopCount = 0;
+  private long playerStateTimestamp = 0;
+  private long stopedTimme = 0;
 
   public EventLogger(MappingTrackSelector trackSelector) {
     this.trackSelector = trackSelector;
@@ -91,8 +101,26 @@ import java.util.Locale;
 
   @Override
   public void onPlayerStateChanged(boolean playWhenReady, int state) {
+    long timestamp = SystemClock.elapsedRealtime() - startTimeMs;
+
+    int oldState = playerState;
+    playerState = state;
+    long oldStateTimestamp = playerStateTimestamp;
+    playerStateTimestamp = timestamp;
+
+    if (oldState == ExoPlayer.STATE_BUFFERING && playerState == ExoPlayer.STATE_READY) {
+      stopCount++;
+      Timber.d("Number of stops: %d", stopCount);
+      long stopTime = playerStateTimestamp - oldStateTimestamp;
+      Timber.d("Stop time: %f", stopTime / 1000f);
+      stopedTimme += stopTime;
+      Timber.d("Total Stop time: %f", stopedTimme/ 1000f);
+    }
+
     Log.d(TAG, "state [" + getSessionTimeString() + ", " + playWhenReady + ", "
         + getStateString(state) + "]");
+
+
   }
 
   @Override
@@ -113,14 +141,14 @@ import java.util.Locale;
     Log.d(TAG, "sourceInfo [periodCount=" + periodCount + ", windowCount=" + windowCount);
     for (int i = 0; i < Math.min(periodCount, MAX_TIMELINE_ITEM_LINES); i++) {
       timeline.getPeriod(i, period);
-      Log.d(TAG, "  " +  "period [" + getTimeString(period.getDurationMs()) + "]");
+      Log.d(TAG, "  " + "period [" + getTimeString(period.getDurationMs()) + "]");
     }
     if (periodCount > MAX_TIMELINE_ITEM_LINES) {
       Log.d(TAG, "  ...");
     }
     for (int i = 0; i < Math.min(windowCount, MAX_TIMELINE_ITEM_LINES); i++) {
       timeline.getWindow(i, window);
-      Log.d(TAG, "  " +  "window [" + getTimeString(window.getDurationMs()) + ", "
+      Log.d(TAG, "  " + "window [" + getTimeString(window.getDurationMs()) + ", "
           + window.isSeekable + ", " + window.isDynamic + "]");
     }
     if (windowCount > MAX_TIMELINE_ITEM_LINES) {
@@ -223,7 +251,7 @@ import java.util.Locale;
 
   @Override
   public void onAudioDecoderInitialized(String decoderName, long elapsedRealtimeMs,
-      long initializationDurationMs) {
+                                        long initializationDurationMs) {
     Log.d(TAG, "audioDecoderInitialized [" + getSessionTimeString() + ", " + decoderName + "]");
   }
 
@@ -253,7 +281,7 @@ import java.util.Locale;
 
   @Override
   public void onVideoDecoderInitialized(String decoderName, long elapsedRealtimeMs,
-      long initializationDurationMs) {
+                                        long initializationDurationMs) {
     Log.d(TAG, "videoDecoderInitialized [" + getSessionTimeString() + ", " + decoderName + "]");
   }
 
@@ -275,7 +303,7 @@ import java.util.Locale;
 
   @Override
   public void onVideoSizeChanged(int width, int height, int unappliedRotationDegrees,
-      float pixelWidthHeightRatio) {
+                                 float pixelWidthHeightRatio) {
     // Do nothing.
   }
 
@@ -317,30 +345,30 @@ import java.util.Locale;
 
   @Override
   public void onLoadStarted(DataSpec dataSpec, int dataType, int trackType, Format trackFormat,
-      int trackSelectionReason, Object trackSelectionData, long mediaStartTimeMs,
-      long mediaEndTimeMs, long elapsedRealtimeMs) {
+                            int trackSelectionReason, Object trackSelectionData, long mediaStartTimeMs,
+                            long mediaEndTimeMs, long elapsedRealtimeMs) {
     // Do nothing.
   }
 
   @Override
   public void onLoadError(DataSpec dataSpec, int dataType, int trackType, Format trackFormat,
-      int trackSelectionReason, Object trackSelectionData, long mediaStartTimeMs,
-      long mediaEndTimeMs, long elapsedRealtimeMs, long loadDurationMs, long bytesLoaded,
-      IOException error, boolean wasCanceled) {
+                          int trackSelectionReason, Object trackSelectionData, long mediaStartTimeMs,
+                          long mediaEndTimeMs, long elapsedRealtimeMs, long loadDurationMs, long bytesLoaded,
+                          IOException error, boolean wasCanceled) {
     printInternalError("loadError", error);
   }
 
   @Override
   public void onLoadCanceled(DataSpec dataSpec, int dataType, int trackType, Format trackFormat,
-      int trackSelectionReason, Object trackSelectionData, long mediaStartTimeMs,
-      long mediaEndTimeMs, long elapsedRealtimeMs, long loadDurationMs, long bytesLoaded) {
+                             int trackSelectionReason, Object trackSelectionData, long mediaStartTimeMs,
+                             long mediaEndTimeMs, long elapsedRealtimeMs, long loadDurationMs, long bytesLoaded) {
     // Do nothing.
   }
 
   @Override
   public void onLoadCompleted(DataSpec dataSpec, int dataType, int trackType, Format trackFormat,
-      int trackSelectionReason, Object trackSelectionData, long mediaStartTimeMs,
-      long mediaEndTimeMs, long elapsedRealtimeMs, long loadDurationMs, long bytesLoaded) {
+                              int trackSelectionReason, Object trackSelectionData, long mediaStartTimeMs,
+                              long mediaEndTimeMs, long elapsedRealtimeMs, long loadDurationMs, long bytesLoaded) {
     // Do nothing.
   }
 
@@ -351,7 +379,7 @@ import java.util.Locale;
 
   @Override
   public void onDownstreamFormatChanged(int trackType, Format trackFormat, int trackSelectionReason,
-      Object trackSelectionData, long mediaTimeMs) {
+                                        Object trackSelectionData, long mediaTimeMs) {
     // Do nothing.
   }
 
@@ -452,7 +480,7 @@ import java.util.Locale;
   }
 
   private static String getTrackStatusString(TrackSelection selection, TrackGroup group,
-      int trackIndex) {
+                                             int trackIndex) {
     return getTrackStatusString(selection != null && selection.getTrackGroup() == group
         && selection.indexOf(trackIndex) != C.INDEX_UNSET);
   }

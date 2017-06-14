@@ -2,19 +2,45 @@
   {
     "name": "UPV | COMM | Look Ahead Adaptation",
     "samples": [
+
       {
-        "name": "Elephant's Dream | H264 | tione",
-        "uri": "http://10.0.0.11/ed5m_h264_dash.mpd",
+        "name": "Elephant's Dream | VP9 | No limit",
+        "uri": "https://lookahead.iteam.upv.es/ed_vp9/ed_h265.mpd",
         "extension": "mpd"
       },
       {
-        "name": "Elephant's Dream | H265 | varuna",
-        "uri": "http://10.0.0.20/ed_h265/ed_h265.mpd",
+        "name": "Elephant's Dream | VP9 | 1Mbps",
+        "uri": "https://lookahead.iteam.upv.es/ed_vp9_1mbps/ed_h265.mpd",
         "extension": "mpd"
       },
       {
-        "name": "Elephant's Dream | VP9 | varuna",
-        "uri": "http://10.0.0.20/ed_vp9/ed_h265.mpd",
+        "name": "Elephant's Dream | VP9 | 2Mbps",
+        "uri": "https://lookahead.iteam.upv.es/ed_vp9_2mbps/ed_h265.mpd",
+        "extension": "mpd"
+      },
+      {
+        "name": "Elephant's Dream | VP9 | 5Mbps",
+        "uri": "https://lookahead.iteam.upv.es/ed_vp9_5mbps/ed_h265.mpd",
+        "extension": "mpd"
+      },
+      {
+        "name": "Elephant's Dream | VP9 | 10Mbps",
+        "uri": "https://lookahead.iteam.upv.es/ed_vp9_10mbps/ed_h265.mpd",
+        "extension": "mpd"
+      },
+      {
+        "name": "Elephant's Dream | VP9 | 20Mbps",
+        "uri": "https://lookahead.iteam.upv.es/ed_vp9_20mbps/ed_h265.mpd",
+        "extension": "mpd"
+      },
+      {
+        "name": "Elephant's Dream | VP9 | 50Mbps",
+        "uri": "https://lookahead.iteam.upv.es/ed_vp9_50mbps/ed_h265.mpd",
+        "extension": "mpd"
+      },
+      {
+        "name": "Elephant's Dream | VP9 | 100Mbps",
+        "uri": "https://lookahead.iteam.upv.es/ed_vp9_100mbps/ed_h265.mpd",
         "extension": "mpd"
       }
     ]

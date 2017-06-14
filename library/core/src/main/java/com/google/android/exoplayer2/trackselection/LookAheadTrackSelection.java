@@ -62,6 +62,18 @@ public class LookAheadTrackSelection extends BaseTrackSelection {
       return;
     }
 
+    // get buffer length
+    long bufferLength = bufferEndTime - playbackPositionUs;
+    float bufferLengthS = (float) bufferLength / 1000000f;
+    Timber.d("Buffer Length: %f", bufferLengthS);
+
+
+    // get bandwidth estimation
+    long bitrateEstimate = bandwidthMeter.getBitrateEstimate();
+    float effectiveBitrate = bitrateEstimate == BandwidthMeter.NO_ESTIMATE
+        ? DEFAULT_MAX_INITIAL_BITRATE : (long) (bitrateEstimate);
+//    effectiveBitrate = 5_000_000f;
+    Timber.d("Estimated bitrate: %f", effectiveBitrate);
 
 
     // get the next time position we need to download
@@ -69,28 +81,36 @@ public class LookAheadTrackSelection extends BaseTrackSelection {
     // get the indices for all tracks (are they always the same?)
     int nextIndex = getNextChunkIndex(downloadedPlaybackPosition);
 
+    int discarded = 0;
+    if (bufferLengthS > 0) {
+
+      int[] nextChunkSizes = getAheadSizes(nextIndex, 1);
+      for (int i = 0; i < nextChunkSizes.length; i++) {
+//      Timber.d("Next chunk needed bandwidth: %f", (nextChunkSizes[i]*8)/bufferLengthS);
+        if (((nextChunkSizes[i] * 8) / bufferLengthS) > effectiveBitrate) {
+          discarded = i;
+        }
+      }
+    }
+
+    Timber.d("Discarded: %d", discarded);
+
+
+    // ahead duration and sizes
     long aheadDuration = getAheadTime(nextIndex, AHEAD_CHUNKS);
     float aheadDurationS = aheadDuration / 1000_000f;
     int[] aheadSizes = getAheadSizes(nextIndex, AHEAD_CHUNKS);
 
 
-
-
-    // get bandwidth estimation
-    long bitrateEstimate = bandwidthMeter.getBitrateEstimate();
     selectedIndex = length - 1;
-    float effectiveBitrate = bitrateEstimate == BandwidthMeter.NO_ESTIMATE
-        ? DEFAULT_MAX_INITIAL_BITRATE : (long) (bitrateEstimate );
-//    effectiveBitrate = 5_000_000f;
 
-
-    for (int i = 0; i < length; i++) {
+    for (int i = discarded; i < length; i++) {
       float aheadTrackSize = aheadSizes[i];
-      float neededBandwidth = aheadTrackSize * 8F / aheadDurationS ;
-      Timber.d("Track %d, needed bandwidth: %f, effective bitrate: %f", i, neededBandwidth, effectiveBitrate);
+      float neededBandwidth = aheadTrackSize * 8F / aheadDurationS;
+//      Timber.d("Track %d, needed bandwidth: %f, effective bitrate: %f", i, neededBandwidth, effectiveBitrate);
       if (effectiveBitrate > neededBandwidth) {
         selectedIndex = i;
-        Timber.d("Selected Index: %d", selectedIndex);
+        Timber.d("Selected Index: %d, needed bandwidth: %f", selectedIndex, neededBandwidth);
         break;
       }
     }
@@ -116,6 +136,7 @@ public class LookAheadTrackSelection extends BaseTrackSelection {
 
   /**
    * Select an uninitialized track
+   *
    * @return the index of an uninitialized track of -1 if all are initialized
    */
   private int selectUninitializedTrack() {
@@ -128,6 +149,7 @@ public class LookAheadTrackSelection extends BaseTrackSelection {
 
   /**
    * Gets the indexes where the given time
+   *
    * @param time the time to find the index
    * @return a list of indices for all tracks
    */
@@ -143,21 +165,22 @@ public class LookAheadTrackSelection extends BaseTrackSelection {
     return nextChunkIndices;
   }
 
-  private int getNextChunkIndex(long time){
+  private int getNextChunkIndex(long time) {
     return getNextChunkIndex(0, time);
   }
 
-  private int getNextChunkIndex(int track, long time){
+  private int getNextChunkIndex(int track, long time) {
     return chunkIndices[track].getChunkIndex(time);
   }
 
   /**
    * Gets ahead times for a given time and ahead chunk count
-   * @param index the current index
+   *
+   * @param index          the current index
    * @param aheadPositions the ahead chunk count
    * @return the ahead times
    */
-  private long[] getAheadTimes(int index, int aheadPositions){
+  private long[] getAheadTimes(int index, int aheadPositions) {
     long[] aheadTimes = new long[length];
     Arrays.fill(aheadTimes, 0);
     for (int i = 0; i < chunkIndices.length; i++) {
@@ -169,8 +192,8 @@ public class LookAheadTrackSelection extends BaseTrackSelection {
   }
 
   @DebugLog
-  private long getAheadTime(int index, int aheadPositions){
-    return getAheadTime(0,index, aheadPositions);
+  private long getAheadTime(int index, int aheadPositions) {
+    return getAheadTime(0, index, aheadPositions);
   }
 
   private long getAheadTime(int track, int index, int aheadPositions) {
@@ -189,12 +212,13 @@ public class LookAheadTrackSelection extends BaseTrackSelection {
 
   /**
    * Gets ahead sizes for a given time and ahead chunk count
-   * @param index the current index
+   *
+   * @param index          the current index
    * @param aheadPositions the ahead chunk count
    * @return the ahead times
    */
   @DebugLog
-  private int[] getAheadSizes(int index, int aheadPositions){
+  private int[] getAheadSizes(int index, int aheadPositions) {
     int[] aheadSizes = new int[length];
     Arrays.fill(aheadSizes, 0);
     for (int i = 0; i < chunkIndices.length; i++) {
@@ -205,7 +229,7 @@ public class LookAheadTrackSelection extends BaseTrackSelection {
     return aheadSizes;
   }
 
-  private int getAheadSize(int track ,int index, int aheadPositions){
+  private int getAheadSize(int track, int index, int aheadPositions) {
     int size = 0;
 
     ChunkIndex chunkIndex = chunkIndices[track];
