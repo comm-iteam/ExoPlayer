@@ -14,7 +14,7 @@ import timber.log.Timber;
  * Create by Ismael on 16-May-17.
  */
 
-public class LookAheadTrackSelection extends BaseTrackSelection {
+public class LookAheadTrackSelection2 extends BaseTrackSelection {
 
   private final boolean V = true;
 
@@ -35,8 +35,8 @@ public class LookAheadTrackSelection extends BaseTrackSelection {
    * @param tracks The indices of the selected tracks within the {@link TrackGroup}. Must not be
    */
   @DebugLog
-  public LookAheadTrackSelection(TrackGroup group, int[] tracks, BandwidthMeter bandwidthMeter,
-                                 int maxInitialBitrate, float bandwidthFraction) {
+  public LookAheadTrackSelection2(TrackGroup group, int[] tracks, BandwidthMeter bandwidthMeter,
+                                  int maxInitialBitrate, float bandwidthFraction) {
     super(group, tracks);
     this.bandwidthMeter = bandwidthMeter;
     this.maxInitialBitrate = maxInitialBitrate;
@@ -87,36 +87,47 @@ public class LookAheadTrackSelection extends BaseTrackSelection {
 
     // discard qualities which next segment is too big to download
     int discarded = 0;
-    if (bufferLengthS > 0) {
-      int[] nextChunkSizes = getAheadSizes(nextIndex, 1);
-      for (int i = 0; i < nextChunkSizes.length; i++) {
-        if (((nextChunkSizes[i] * 8) / bufferLengthS) > effectiveBitrate) {
-          discarded = i;
-        } else {
+
+    for (int teta = 1; teta < (AHEAD_CHUNKS + 1); teta++) {
+      // ahead duration and sizes
+      long aheadDuration = getAheadTime(nextIndex, teta);
+      float aheadDurationS = aheadDuration / 1000_000f;
+      int[] aheadSizes = getAheadSizes(nextIndex, teta);
+
+      // search for the first quality that fits in the effective bitrate
+      for (int i = discarded; i < length; i++) {
+        // choose this quality
+        discarded = i;
+        // calc needed bandwidth
+        float aheadTrackSize = aheadSizes[i];
+        float neededBandwidth = aheadTrackSize * 8F / aheadDurationS;
+        // exit the search loop if this is the fitting quality
+        if (effectiveBitrate >= neededBandwidth) {
+          Timber.d("Teta: %d, Selected Index: %d, needed bandwidth: %f", teta, discarded, neededBandwidth);
           break;
         }
       }
     }
-    Timber.d("Discarded: %d", discarded);
 
-    // ahead duration and sizes
-    long aheadDuration = getAheadTime(nextIndex, AHEAD_CHUNKS);
-    float aheadDurationS = aheadDuration / 1000_000f;
-    int[] aheadSizes = getAheadSizes(nextIndex, AHEAD_CHUNKS);
+    selectedIndex = discarded;
 
-    // search for the first quality that fits in the effective bitrate
-    for (int i = discarded; i < length; i++) {
-      // choose this quality
-      selectedIndex = i;
-      // calc needed bandwidth
-      float aheadTrackSize = aheadSizes[i];
-      float neededBandwidth = aheadTrackSize * 8F / aheadDurationS;
-      // exit the search loop if this is the fitting quality
-      if (effectiveBitrate >= neededBandwidth) {
-        Timber.d("Selected Index: %d, needed bandwidth: %f", selectedIndex, neededBandwidth);
-        break;
-      }
-    }
+
+//    if (bufferLengthS > 0) {
+//      int[] nextChunkSizes = getAheadSizes(nextIndex, 1);
+//      for (int i = 0; i < nextChunkSizes.length; i++) {
+//        if (((nextChunkSizes[i] * 8) / bufferLengthS) > effectiveBitrate) {
+//          discarded = i;
+//        } else {
+//          break;
+//        }
+//      }
+//    }
+//    Timber.d("Discarded: %d", discarded);
+
+
+
+
+
 
     reason = C.SELECTION_REASON_ADAPTIVE;
   }
@@ -141,8 +152,8 @@ public class LookAheadTrackSelection extends BaseTrackSelection {
     }
 
     @Override
-    public LookAheadTrackSelection createTrackSelection(TrackGroup group, int... tracks) {
-      return new LookAheadTrackSelection(group, tracks, bandwidthMeter, maxInitialBitrate,
+    public LookAheadTrackSelection2 createTrackSelection(TrackGroup group, int... tracks) {
+      return new LookAheadTrackSelection2(group, tracks, bandwidthMeter, maxInitialBitrate,
           bandwidthFraction);
     }
 
@@ -205,7 +216,6 @@ public class LookAheadTrackSelection extends BaseTrackSelection {
     return aheadTimes;
   }
 
-  @DebugLog
   private long getAheadTime(int index, int aheadPositions) {
     return getAheadTime(0, index, aheadPositions);
   }
@@ -231,7 +241,6 @@ public class LookAheadTrackSelection extends BaseTrackSelection {
    * @param aheadPositions the ahead chunk count
    * @return the ahead times
    */
-  @DebugLog
   private int[] getAheadSizes(int index, int aheadPositions) {
     int[] aheadSizes = new int[length];
     Arrays.fill(aheadSizes, 0);

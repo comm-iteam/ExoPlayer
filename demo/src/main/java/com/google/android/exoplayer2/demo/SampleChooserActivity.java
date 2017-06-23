@@ -15,8 +15,11 @@
  */
 package com.google.android.exoplayer2.demo;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.AssetManager;
 import android.net.Uri;
@@ -28,11 +31,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
+import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.ExpandableListView.OnChildClickListener;
 import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ParserException;
 import com.google.android.exoplayer2.upstream.DataSource;
@@ -41,6 +46,7 @@ import com.google.android.exoplayer2.upstream.DataSpec;
 import com.google.android.exoplayer2.upstream.DefaultDataSource;
 import com.google.android.exoplayer2.util.Assertions;
 import com.google.android.exoplayer2.util.Util;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -50,6 +56,7 @@ import java.util.List;
 import java.util.UUID;
 
 import hugo.weaving.DebugLog;
+import timber.log.Timber;
 
 /**
  * An activity for selecting from a list of samples.
@@ -58,22 +65,32 @@ public class SampleChooserActivity extends Activity {
 
   private static final String TAG = "SampleChooserActivity";
 
+  private static final int ACTIVITY_REQUEST_CODE = 1234;
+
   private RadioButton lookAheadRadioBtn;
   private RadioButton adaptiveRadioBtn;
+
+  private EditText numberRepetitionsEditText;
+  private Sample lastSelectedSample;
+  private int numberRepetitions;
+  private ArrayList<PlaybackReport> playbackReports = new ArrayList<>();
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.sample_chooser_activity);
 
-    lookAheadRadioBtn = (RadioButton)findViewById(R.id.lookAheadRadioButton);
-    adaptiveRadioBtn = (RadioButton)findViewById(R.id.adaptiveRadioButton);
+    lookAheadRadioBtn = (RadioButton) findViewById(R.id.lookAheadRadioButton);
+    adaptiveRadioBtn = (RadioButton) findViewById(R.id.adaptiveRadioButton);
+
+    numberRepetitionsEditText = (EditText) findViewById(R.id.numberRepetitions);
+
 
     Intent intent = getIntent();
     String dataUri = intent.getDataString();
     String[] uris;
     if (dataUri != null) {
-      uris = new String[] {dataUri};
+      uris = new String[]{dataUri};
     } else {
       ArrayList<String> uriList = new ArrayList<>();
       AssetManager assetManager = getAssets();
@@ -105,7 +122,7 @@ public class SampleChooserActivity extends Activity {
     sampleList.setOnChildClickListener(new OnChildClickListener() {
       @Override
       public boolean onChildClick(ExpandableListView parent, View view, int groupPosition,
-          int childPosition, long id) {
+                                  int childPosition, long id) {
         onSampleSelected(groups.get(groupPosition).samples.get(childPosition));
         return true;
       }
@@ -114,16 +131,76 @@ public class SampleChooserActivity extends Activity {
 
   @DebugLog
   private void onSampleSelected(Sample sample) {
+    lastSelectedSample = sample;
+    numberRepetitions = Integer.parseInt(numberRepetitionsEditText.getText().toString());
+    playbackReports.clear();
+
+
     int algorithm;
-    if (lookAheadRadioBtn.isChecked()){
+    if (lookAheadRadioBtn.isChecked()) {
       algorithm = PlayerActivity.ADAPTATION_ALGORITHM_LOOK_AHEAD;
-    }else {
+    } else {
       algorithm = PlayerActivity.ADAPTATION_ALGORITHM_DEFAULT;
     }
 
     Intent i = sample.buildIntent(this);
     i.putExtra(PlayerActivity.ADAPTATION_ALGORITHM_EXTRA, algorithm);
-    startActivity(i);
+//    startActivity(i);
+    startActivityForResult(i, ACTIVITY_REQUEST_CODE);
+  }
+
+  @Override
+  protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    super.onActivityResult(requestCode, resultCode, data);
+
+    if (data != null) {
+      PlaybackReport pr = (PlaybackReport) data.getSerializableExtra(PlayerActivity.PLAYBACK_REPORT_EXTRA);
+      if (pr != null) {
+        playbackReports.add(pr);
+        Timber.d("Stops: %d, time: %d", pr.getStops(), pr.getStallTime());
+      }
+    }
+
+
+    if (--numberRepetitions > 0) {
+      int algorithm;
+      if (lookAheadRadioBtn.isChecked()) {
+        algorithm = PlayerActivity.ADAPTATION_ALGORITHM_LOOK_AHEAD;
+      } else {
+        algorithm = PlayerActivity.ADAPTATION_ALGORITHM_DEFAULT;
+      }
+
+      Intent i = lastSelectedSample.buildIntent(this);
+      i.putExtra(PlayerActivity.ADAPTATION_ALGORITHM_EXTRA, algorithm);
+      startActivityForResult(i, ACTIVITY_REQUEST_CODE);
+    } else {
+      Timber.d("Test finished!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+      if (playbackReports.size() > 0) {
+        float stopsAvg = 0;
+        long bufferingAvg = 0;
+        long stoppedTimeAvg = 0;
+        for (int i = 0; i < playbackReports.size(); i++) {
+          PlaybackReport pr = playbackReports.get(i);
+          Timber.d("Loop: %d, stops: %d, buffering: %f, stopped: %f", i, (pr.getStops() - 1), pr.getInitialBuffering() / 1000f, pr.getStallTime() / 1000f);
+          stopsAvg += (pr.getStops() - 1);
+          bufferingAvg += pr.getInitialBuffering();
+          stoppedTimeAvg += pr.getStallTime();
+        }
+        stopsAvg = stopsAvg / playbackReports.size();
+        bufferingAvg = bufferingAvg / playbackReports.size();
+        stoppedTimeAvg = stoppedTimeAvg / playbackReports.size();
+        Timber.d("Average: stops: %f, buffering: %f, stopped: %f", stopsAvg, bufferingAvg / 1000f, stoppedTimeAvg / 1000f);
+
+        @SuppressLint("DefaultLocale")
+        AlertDialog.Builder builder = new AlertDialog.Builder(this)
+            .setMessage(String.format("Stops: %f, buffering: %f, stopped: %f",
+                stopsAvg, bufferingAvg / 1000f, stoppedTimeAvg / 1000f));
+
+        AlertDialog ad = builder.create();
+        ad.show();
+      }
+    }
+
   }
 
   private final class SampleListLoader extends AsyncTask<String, Void, List<SampleGroup>> {
@@ -322,7 +399,7 @@ public class SampleChooserActivity extends Activity {
 
     @Override
     public View getChildView(int groupPosition, int childPosition, boolean isLastChild,
-        View convertView, ViewGroup parent) {
+                             View convertView, ViewGroup parent) {
       View view = convertView;
       if (view == null) {
         view = LayoutInflater.from(context).inflate(android.R.layout.simple_list_item_1, parent,
@@ -349,7 +426,7 @@ public class SampleChooserActivity extends Activity {
 
     @Override
     public View getGroupView(int groupPosition, boolean isExpanded, View convertView,
-        ViewGroup parent) {
+                             ViewGroup parent) {
       View view = convertView;
       if (view == null) {
         view = LayoutInflater.from(context).inflate(android.R.layout.simple_expandable_list_item_1,
@@ -397,7 +474,7 @@ public class SampleChooserActivity extends Activity {
     public final String[] drmKeyRequestProperties;
 
     public Sample(String name, UUID drmSchemeUuid, String drmLicenseUrl,
-        String[] drmKeyRequestProperties, boolean preferExtensionDecoders) {
+                  String[] drmKeyRequestProperties, boolean preferExtensionDecoders) {
       this.name = name;
       this.drmSchemeUuid = drmSchemeUuid;
       this.drmLicenseUrl = drmLicenseUrl;
@@ -424,8 +501,8 @@ public class SampleChooserActivity extends Activity {
     public final String extension;
 
     public UriSample(String name, UUID drmSchemeUuid, String drmLicenseUrl,
-        String[] drmKeyRequestProperties, boolean preferExtensionDecoders, String uri,
-        String extension) {
+                     String[] drmKeyRequestProperties, boolean preferExtensionDecoders, String uri,
+                     String extension) {
       super(name, drmSchemeUuid, drmLicenseUrl, drmKeyRequestProperties, preferExtensionDecoders);
       this.uri = uri;
       this.extension = extension;
@@ -446,8 +523,8 @@ public class SampleChooserActivity extends Activity {
     public final UriSample[] children;
 
     public PlaylistSample(String name, UUID drmSchemeUuid, String drmLicenseUrl,
-        String[] drmKeyRequestProperties, boolean preferExtensionDecoders,
-        UriSample... children) {
+                          String[] drmKeyRequestProperties, boolean preferExtensionDecoders,
+                          UriSample... children) {
       super(name, drmSchemeUuid, drmLicenseUrl, drmKeyRequestProperties, preferExtensionDecoders);
       this.children = children;
     }

@@ -81,9 +81,10 @@ import timber.log.Timber;
   private final long startTimeMs;
 
   private int playerState = ExoPlayer.STATE_IDLE;
-  private int stopCount = 0;
+  public int stopCount = 0;
   private long playerStateTimestamp = 0;
-  private long stopedTimme = 0;
+  public long initialBuffering=0;
+  public long stoppedTime = 0;
 
   public EventLogger(MappingTrackSelector trackSelector) {
     this.trackSelector = trackSelector;
@@ -112,9 +113,14 @@ import timber.log.Timber;
       stopCount++;
       Timber.d("Number of stops: %d", stopCount);
       long stopTime = playerStateTimestamp - oldStateTimestamp;
+
+      if (stopCount == 1){
+        initialBuffering = stopTime;
+      }
+
       Timber.d("Stop time: %f", stopTime / 1000f);
-      stopedTimme += stopTime;
-      Timber.d("Total Stop time: %f", stopedTimme/ 1000f);
+      stoppedTime += stopTime;
+      Timber.d("Total Stop time: %f", stoppedTime / 1000f);
     }
 
     Log.d(TAG, "state [" + getSessionTimeString() + ", " + playWhenReady + ", "

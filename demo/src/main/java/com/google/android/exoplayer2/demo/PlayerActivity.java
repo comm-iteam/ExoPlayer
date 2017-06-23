@@ -60,6 +60,7 @@ import com.google.android.exoplayer2.source.smoothstreaming.SsMediaSource;
 import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.LookAheadTrackSelection;
+import com.google.android.exoplayer2.trackselection.LookAheadTrackSelection2;
 import com.google.android.exoplayer2.trackselection.MappingTrackSelector.MappedTrackInfo;
 import com.google.android.exoplayer2.trackselection.TrackSelection;
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
@@ -90,6 +91,9 @@ public class PlayerActivity extends Activity implements OnClickListener, ExoPlay
   public static final String ADAPTATION_ALGORITHM_EXTRA = "adaptation_algorithm_extra";
   public static final int ADAPTATION_ALGORITHM_LOOK_AHEAD = 0;
   public static final int ADAPTATION_ALGORITHM_DEFAULT = 1;
+
+  public static final String PLAYBACK_REPORT_EXTRA = "playback_report_extra";
+
 
   public static final String ACTION_VIEW = "com.google.android.exoplayer.demo.action.VIEW";
   public static final String EXTENSION_EXTRA = "extension";
@@ -278,7 +282,7 @@ public class PlayerActivity extends Activity implements OnClickListener, ExoPlay
           break;
         case ADAPTATION_ALGORITHM_LOOK_AHEAD:
           adaptiveTrackSelectionFactory =
-              new LookAheadTrackSelection.Factory(BANDWIDTH_METER);
+              new LookAheadTrackSelection2.Factory(BANDWIDTH_METER);
           break;
       }
 
@@ -439,6 +443,14 @@ public class PlayerActivity extends Activity implements OnClickListener, ExoPlay
   public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
     if (playbackState == ExoPlayer.STATE_ENDED) {
       showControls();
+
+      PlaybackReport pr = new PlaybackReport(eventLogger.stopCount, eventLogger.stoppedTime, eventLogger.initialBuffering);
+      Intent result = new Intent();
+      result.putExtra(PLAYBACK_REPORT_EXTRA, pr);
+      setResult(RESULT_OK,result);
+
+      finish();
+
     }
     updateButtonVisibilities();
   }
