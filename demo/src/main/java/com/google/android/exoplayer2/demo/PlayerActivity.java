@@ -244,6 +244,9 @@ public class PlayerActivity extends Activity implements OnClickListener, ExoPlay
     Intent intent = getIntent();
     boolean needNewPlayer = player == null;
     if (needNewPlayer) {
+
+      eventLogger = new EventLogger(trackSelector);
+
       UUID drmSchemeUuid = intent.hasExtra(DRM_SCHEME_UUID_EXTRA)
           ? UUID.fromString(intent.getStringExtra(DRM_SCHEME_UUID_EXTRA)) : null;
       DrmSessionManager<FrameworkMediaCrypto> drmSessionManager = null;
@@ -271,6 +274,7 @@ public class PlayerActivity extends Activity implements OnClickListener, ExoPlay
       DefaultRenderersFactory renderersFactory = new DefaultRenderersFactory(this,
           drmSessionManager, extensionRendererMode);
 
+
       int algorithm = getIntent().getIntExtra(ADAPTATION_ALGORITHM_EXTRA, ADAPTATION_ALGORITHM_LOOK_AHEAD);
 
       TrackSelection.Factory adaptiveTrackSelectionFactory = null;
@@ -285,15 +289,13 @@ public class PlayerActivity extends Activity implements OnClickListener, ExoPlay
               new LookAheadTrackSelection2.Factory(BANDWIDTH_METER);
           break;
       }
-
       trackSelector = new DefaultTrackSelector(adaptiveTrackSelectionFactory);
       trackSelectionHelper = new TrackSelectionHelper(trackSelector, adaptiveTrackSelectionFactory);
       lastSeenTrackGroupArray = null;
 
+
       player = ExoPlayerFactory.newSimpleInstance(renderersFactory, trackSelector);
       player.addListener(this);
-
-      eventLogger = new EventLogger(trackSelector);
       player.addListener(eventLogger);
       player.setAudioDebugListener(eventLogger);
       player.setVideoDebugListener(eventLogger);
