@@ -15,14 +15,21 @@ apply plugin: 'com.android.application'
 apply plugin: 'com.jakewharton.hugo'
 
 android {
+    signingConfigs {
+        config {
+            keyAlias 'lookahead'
+            keyPassword 'chkdsk'
+            storeFile file('/home/robelor/Developer/ExoPlayer/lookahead.jks')
+            storePassword 'chkdsk'
+        }
+    }
     compileSdkVersion project.ext.compileSdkVersion
     buildToolsVersion project.ext.buildToolsVersion
-
     defaultConfig {
         minSdkVersion 16
         targetSdkVersion project.ext.targetSdkVersion
+        signingConfig signingConfigs.config
     }
-
     buildTypes {
         release {
             shrinkResources true
@@ -33,12 +40,10 @@ android {
             jniDebuggable = true
         }
     }
-
     lintOptions {
         // The demo app does not have translations.
         disable 'MissingTranslation'
     }
-
     productFlavors {
         noExtensions
         withExtensions
@@ -55,14 +60,11 @@ dependencies {
     withExtensionsCompile project(path: ':extension-flac')
     withExtensionsCompile project(path: ':extension-opus')
     withExtensionsCompile project(path: ':extension-vp9')
-
     compile 'com.jakewharton.timber:timber:4.5.1'
-
     debugCompile 'org.slf4j:slf4j-api:1.7.21'
     debugCompile 'com.github.tony19:logback-android-core:1.1.1-6'
     debugCompile('com.github.tony19:logback-android-classic:1.1.1-6') {
         // workaround issue #73
         exclude group: 'com.google.android', module: 'android'
     }
-
 }
