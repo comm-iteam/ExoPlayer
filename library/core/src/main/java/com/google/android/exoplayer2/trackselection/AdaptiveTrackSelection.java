@@ -21,18 +21,13 @@ import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.source.TrackGroup;
 import com.google.android.exoplayer2.source.chunk.MediaChunk;
 import com.google.android.exoplayer2.upstream.BandwidthMeter;
-
 import java.util.List;
-
-import timber.log.Timber;
 
 /**
  * A bandwidth based adaptive {@link TrackSelection}, whose selected track is updated to be the one
  * of highest quality given the current network conditions and the state of the buffer.
  */
 public class AdaptiveTrackSelection extends BaseTrackSelection {
-
-  private final boolean V = true;
 
   /**
    * Factory for {@link AdaptiveTrackSelection} instances.
@@ -73,8 +68,8 @@ public class AdaptiveTrackSelection extends BaseTrackSelection {
      *     for inaccuracies in the bandwidth estimator.
      */
     public Factory(BandwidthMeter bandwidthMeter, int maxInitialBitrate,
-        int minDurationForQualityIncreaseMs, int maxDurationForQualityDecreaseMs,
-        int minDurationToRetainAfterDiscardMs, float bandwidthFraction) {
+                   int minDurationForQualityIncreaseMs, int maxDurationForQualityDecreaseMs,
+                   int minDurationToRetainAfterDiscardMs, float bandwidthFraction) {
       this.bandwidthMeter = bandwidthMeter;
       this.maxInitialBitrate = maxInitialBitrate;
       this.minDurationForQualityIncreaseMs = minDurationForQualityIncreaseMs;
@@ -115,7 +110,7 @@ public class AdaptiveTrackSelection extends BaseTrackSelection {
    * @param bandwidthMeter Provides an estimate of the currently available bandwidth.
    */
   public AdaptiveTrackSelection(TrackGroup group, int[] tracks,
-      BandwidthMeter bandwidthMeter) {
+                                BandwidthMeter bandwidthMeter) {
     this (group, tracks, bandwidthMeter, DEFAULT_MAX_INITIAL_BITRATE,
         DEFAULT_MIN_DURATION_FOR_QUALITY_INCREASE_MS,
         DEFAULT_MAX_DURATION_FOR_QUALITY_DECREASE_MS,
@@ -142,9 +137,9 @@ public class AdaptiveTrackSelection extends BaseTrackSelection {
    *     for inaccuracies in the bandwidth estimator.
    */
   public AdaptiveTrackSelection(TrackGroup group, int[] tracks, BandwidthMeter bandwidthMeter,
-      int maxInitialBitrate, long minDurationForQualityIncreaseMs,
-      long maxDurationForQualityDecreaseMs, long minDurationToRetainAfterDiscardMs,
-      float bandwidthFraction) {
+                                int maxInitialBitrate, long minDurationForQualityIncreaseMs,
+                                long maxDurationForQualityDecreaseMs, long minDurationToRetainAfterDiscardMs,
+                                float bandwidthFraction) {
     super(group, tracks);
     this.bandwidthMeter = bandwidthMeter;
     this.maxInitialBitrate = maxInitialBitrate;
@@ -158,23 +153,9 @@ public class AdaptiveTrackSelection extends BaseTrackSelection {
 
   @Override
   public void updateSelectedTrack(long bufferedDurationUs, long playbackPositionUs, long bufferEndTime) {
-    if (V)  Timber.d("COMM: updateSelectedTrack | bufferedDuration(ms): %d", bufferedDurationUs/1000L);
-  //  Timber.d("COMM: bandwidth: %d", bandwidthMeter.getBitrateEstimate());
     long nowMs = SystemClock.elapsedRealtime();
     // Stash the current selection, then make a new one.
     int currentSelectedIndex = selectedIndex;
-<<<<<<< HEAD
-    //Timber.d("COMM: Llamando a getSelectedFormat desde updateSelectedTrack...");
-    Format currentFormat = getSelectedFormat();
-    if (V)  Timber.d("COMM: updateSelectedTrack | Format: %s", currentFormat);
-    int idealSelectedIndex = determineIdealSelectedIndex(nowMs);
-    Format idealFormat = getFormat(idealSelectedIndex);
-    // Assume we can switch to the ideal selection.
-    selectedIndex = idealSelectedIndex;
-    // Revert back to the current selection if conditions are not suitable for switching.
-    if (currentFormat != null && !isBlacklisted(selectedIndex, nowMs)) {
-      if (idealFormat.bitrate > currentFormat.bitrate
-=======
     selectedIndex = determineIdealSelectedIndex(nowMs);
     if (selectedIndex == currentSelectedIndex) {
       return;
@@ -184,7 +165,6 @@ public class AdaptiveTrackSelection extends BaseTrackSelection {
       Format currentFormat = getFormat(currentSelectedIndex);
       Format selectedFormat = getFormat(selectedIndex);
       if (selectedFormat.bitrate > currentFormat.bitrate
->>>>>>> r2.4.3
           && bufferedDurationUs < minDurationForQualityIncreaseUs) {
         // The selected track is a higher quality, but we have insufficient buffer to safely switch
         // up. Defer switching up for now.
@@ -204,31 +184,21 @@ public class AdaptiveTrackSelection extends BaseTrackSelection {
 
   @Override
   public int getSelectedIndex() {
-    //if (V) Timber.d("COMM: getSelectedIndex: %d", selectedIndex);
-    //if (V) Timber.d("COMM: getSelectedIndex - tracks: %s", (Arrays.toString(tracks)));
     return selectedIndex;
   }
 
   @Override
   public int getSelectionReason() {
-    //if (V) Timber.d("COMM: getSelectionReason: %d", reason);
-
     return reason;
   }
 
   @Override
   public Object getSelectionData() {
-    //Timber.d("COMM: getSelectionData: %s", "null");
-    if (V) Timber.d("COMM: getSelectionData");
     return null;
   }
 
-  //It seems this method is not reached
   @Override
   public int evaluateQueueSize(long playbackPositionUs, List<? extends MediaChunk> queue) {
-
-    if (V) Timber.d("COMM: evaluateQueueSize: queue: %d, playback position: %d, queue: %s", queue.isEmpty(), playbackPositionUs, queue);
-
     if (queue.isEmpty()) {
       return 0;
     }
@@ -254,10 +224,6 @@ public class AdaptiveTrackSelection extends BaseTrackSelection {
         return i;
       }
     }
-
-
-
-
     return queueSize;
   }
 
@@ -268,8 +234,6 @@ public class AdaptiveTrackSelection extends BaseTrackSelection {
    *     {@link Long#MIN_VALUE} to ignore blacklisting.
    */
   private int determineIdealSelectedIndex(long nowMs) {
-  //  if (V) Timber.d("COMM: determineIdealSelectedIndex: %d", nowMs);
-
     long bitrateEstimate = bandwidthMeter.getBitrateEstimate();
     long effectiveBitrate = bitrateEstimate == BandwidthMeter.NO_ESTIMATE
         ? maxInitialBitrate : (long) (bitrateEstimate * bandwidthFraction);

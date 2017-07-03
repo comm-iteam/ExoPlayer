@@ -245,7 +245,7 @@ public class PlayerActivity extends Activity implements OnClickListener, ExoPlay
     boolean needNewPlayer = player == null;
     if (needNewPlayer) {
 
-      eventLogger = new EventLogger(trackSelector);
+
 
       UUID drmSchemeUuid = intent.hasExtra(DRM_SCHEME_UUID_EXTRA)
           ? UUID.fromString(intent.getStringExtra(DRM_SCHEME_UUID_EXTRA)) : null;
@@ -292,6 +292,8 @@ public class PlayerActivity extends Activity implements OnClickListener, ExoPlay
       trackSelector = new DefaultTrackSelector(adaptiveTrackSelectionFactory);
       trackSelectionHelper = new TrackSelectionHelper(trackSelector, adaptiveTrackSelectionFactory);
       lastSeenTrackGroupArray = null;
+
+      eventLogger = new EventLogger(trackSelector);
 
 
       player = ExoPlayerFactory.newSimpleInstance(renderersFactory, trackSelector);
