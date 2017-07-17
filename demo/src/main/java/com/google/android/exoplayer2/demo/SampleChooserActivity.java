@@ -69,6 +69,7 @@ public class SampleChooserActivity extends Activity {
 
   private RadioButton lookAheadRadioBtn;
   private RadioButton adaptiveRadioBtn;
+  private RadioButton mullerRadioBtn;
 
   private EditText numberRepetitionsEditText;
   private Sample lastSelectedSample;
@@ -82,6 +83,7 @@ public class SampleChooserActivity extends Activity {
 
     lookAheadRadioBtn = (RadioButton) findViewById(R.id.lookAheadRadioButton);
     adaptiveRadioBtn = (RadioButton) findViewById(R.id.adaptiveRadioButton);
+    mullerRadioBtn = (RadioButton) findViewById(R.id.mullerRadioButton);
 
     numberRepetitionsEditText = (EditText) findViewById(R.id.numberRepetitions);
 
@@ -136,12 +138,16 @@ public class SampleChooserActivity extends Activity {
     playbackReports.clear();
 
 
-    int algorithm;
+    int algorithm = PlayerActivity.ADAPTATION_ALGORITHM_DEFAULT;
     if (lookAheadRadioBtn.isChecked()) {
       algorithm = PlayerActivity.ADAPTATION_ALGORITHM_LOOK_AHEAD;
-    } else {
+    } else if (adaptiveRadioBtn.isChecked()){
       algorithm = PlayerActivity.ADAPTATION_ALGORITHM_DEFAULT;
+    }else if (mullerRadioBtn.isChecked()){
+      algorithm = PlayerActivity.ADAPTATION_ALGORITHM_MULLER;
     }
+    Timber.d("Algorithm selected: %d", algorithm);
+    System.out.println("Algorithm selected: %d"+ algorithm);
 
     Intent i = sample.buildIntent(this);
     i.putExtra(PlayerActivity.ADAPTATION_ALGORITHM_EXTRA, algorithm);
@@ -163,12 +169,16 @@ public class SampleChooserActivity extends Activity {
 
 
     if (--numberRepetitions > 0) {
-      int algorithm;
+      int algorithm = PlayerActivity.ADAPTATION_ALGORITHM_DEFAULT;
       if (lookAheadRadioBtn.isChecked()) {
         algorithm = PlayerActivity.ADAPTATION_ALGORITHM_LOOK_AHEAD;
-      } else {
+      } else if (adaptiveRadioBtn.isChecked()){
         algorithm = PlayerActivity.ADAPTATION_ALGORITHM_DEFAULT;
+      }else if (mullerRadioBtn.isChecked()){
+        algorithm = PlayerActivity.ADAPTATION_ALGORITHM_MULLER;
       }
+      Timber.d("Algorithm selected: %d", algorithm);
+      System.out.println("Algorithm selected: %d"+ algorithm);
 
       Intent i = lastSelectedSample.buildIntent(this);
       i.putExtra(PlayerActivity.ADAPTATION_ALGORITHM_EXTRA, algorithm);

@@ -44,6 +44,12 @@
           android:layout_height="wrap_content"
           android:layout_weight="1"
           android:text="@string/adaptivetrackselection"/>
+      <RadioButton
+          android:id="@+id/mullerRadioButton"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_weight="1"
+          android:text="@string/mullertrackselection"/>
 
     </RadioGroup>
 

@@ -60,5 +60,6 @@
 
   <string name="adaptivetrackselection">AdaptiveTrackSelection</string>
   <string name="lookaheadtrackselection">LookAheadTrackSelection</string>
+  <string name="mullertrackselection">MullerTrackSelection</string>
 
 </resources>

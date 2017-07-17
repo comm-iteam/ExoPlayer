@@ -62,6 +62,7 @@ import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.LookAheadTrackSelection;
 import com.google.android.exoplayer2.trackselection.LookAheadTrackSelection2;
 import com.google.android.exoplayer2.trackselection.MappingTrackSelector.MappedTrackInfo;
+import com.google.android.exoplayer2.trackselection.MullerTrackSelection;
 import com.google.android.exoplayer2.trackselection.TrackSelection;
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.ui.DebugTextViewHelper;
@@ -75,6 +76,8 @@ import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
 import java.util.UUID;
+
+import timber.log.Timber;
 
 
 /**
@@ -91,6 +94,7 @@ public class PlayerActivity extends Activity implements OnClickListener, ExoPlay
   public static final String ADAPTATION_ALGORITHM_EXTRA = "adaptation_algorithm_extra";
   public static final int ADAPTATION_ALGORITHM_LOOK_AHEAD = 0;
   public static final int ADAPTATION_ALGORITHM_DEFAULT = 1;
+  public static final int ADAPTATION_ALGORITHM_MULLER = 2;
 
   public static final String PLAYBACK_REPORT_EXTRA = "playback_report_extra";
 
@@ -288,6 +292,10 @@ public class PlayerActivity extends Activity implements OnClickListener, ExoPlay
           adaptiveTrackSelectionFactory =
               new LookAheadTrackSelection2.Factory(BANDWIDTH_METER);
           break;
+        case  ADAPTATION_ALGORITHM_MULLER:
+          Timber.d("Mullerrrrr");
+          adaptiveTrackSelectionFactory =
+              new MullerTrackSelection.Factory(BANDWIDTH_METER);
       }
       trackSelector = new DefaultTrackSelector(adaptiveTrackSelectionFactory);
       trackSelectionHelper = new TrackSelectionHelper(trackSelector, adaptiveTrackSelectionFactory);
