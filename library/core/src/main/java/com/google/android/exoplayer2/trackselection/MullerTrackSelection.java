@@ -30,12 +30,12 @@ public class MullerTrackSelection extends BaseTrackSelection {
     }
 
     /**
-     * @param bandwidthMeter                    Provides an estimate of the currently available bandwidth.
-     * @param maxInitialBitrate                 The maximum bitrate in bits per second that should be assumed
-     *                                          when a bandwidth estimate is unavailable.
-     * @param bandwidthFraction                 The fraction of the available bandwidth that the selection should
-     *                                          consider available for use. Setting to a value less than 1 is recommended to account
-     *                                          for inaccuracies in the bandwidth estimator.
+     * @param bandwidthMeter    Provides an estimate of the currently available bandwidth.
+     * @param maxInitialBitrate The maximum bitrate in bits per second that should be assumed
+     *                          when a bandwidth estimate is unavailable.
+     * @param bandwidthFraction The fraction of the available bandwidth that the selection should
+     *                          consider available for use. Setting to a value less than 1 is recommended to account
+     *                          for inaccuracies in the bandwidth estimator.
      */
     public Factory(BandwidthMeter bandwidthMeter, int maxInitialBitrate, float bandwidthFraction) {
       this.bandwidthMeter = bandwidthMeter;
@@ -52,7 +52,7 @@ public class MullerTrackSelection extends BaseTrackSelection {
 
 
   public static final int DEFAULT_MAX_INITIAL_BITRATE = 800000;
-  public static final float DEFAULT_BANDWIDTH_FRACTION = 0.75f;
+  public static final float DEFAULT_BANDWIDTH_FRACTION = 1f;
 
   private static final int DEFAULT_BUFFER_SIZE_S = 30;
   private static final float BUFFER_0_15_THRESHOLD = 0.15f;
@@ -62,7 +62,7 @@ public class MullerTrackSelection extends BaseTrackSelection {
   private static final float BUFFER_0_3_MULTIPLIER = 0.3f;
   private static final float BUFFER_0_5_MULTIPLIER = 0.5f;
   private static final float BUFFER_1_MULTIPLIER = 1f;
-  private static final float BUFFER_1_50_MULTIPLIER = 1.5f;
+  private static final float BUFFER_0_50_EXTRA = 0.5f;
 
   private final BandwidthMeter bandwidthMeter;
   private final int maxInitialBitrate;
@@ -121,7 +121,6 @@ public class MullerTrackSelection extends BaseTrackSelection {
   @Override
   @DebugLog
   public void updateSelectedTrack(long bufferedDurationUs, long playbackPositionUs, long bufferEndTime) {
-    Timber.d("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
     long nowMs = SystemClock.elapsedRealtime();
 
     int currentSelectedIndex = selectedIndex;
@@ -129,7 +128,10 @@ public class MullerTrackSelection extends BaseTrackSelection {
     // get buffer length
     long bufferLength = bufferEndTime - playbackPositionUs;
     float bufferLengthS = (float) bufferLength / 1000000f;
+    float bufferPercent = bufferLengthS / DEFAULT_BUFFER_SIZE_S;
     Timber.d("Buffer Length: %f", bufferLengthS);
+    Timber.d("Buffer percent: %f", bufferPercent);
+
 
     // get bandwidth estimation
     long bitrateEstimate = bandwidthMeter.getBitrateEstimate();
@@ -138,17 +140,27 @@ public class MullerTrackSelection extends BaseTrackSelection {
     Timber.d("Estimated bitrate: %d", effectiveBitrate);
 
     // update bandwidth estimation with with muller algorithm
-    if (bufferLengthS < (float) DEFAULT_BUFFER_SIZE_S * BUFFER_0_15_THRESHOLD)
-      bitrateEstimate = (long) (bitrateEstimate * BUFFER_0_3_MULTIPLIER);
-    else if (bufferLengthS < (float) DEFAULT_BUFFER_SIZE_S * BUFFER_0_30_THRESHOLD)
-      bitrateEstimate = (long) (bitrateEstimate * BUFFER_0_5_MULTIPLIER);
-    else if (bufferLengthS < (float) DEFAULT_BUFFER_SIZE_S * BUFFER_0_50_THRESHOLD)
-      bitrateEstimate = (long) (bitrateEstimate * BUFFER_1_MULTIPLIER);
-    else
-      bitrateEstimate = (long) (bitrateEstimate * BUFFER_1_50_MULTIPLIER);
+    if (bufferLengthS < (float) DEFAULT_BUFFER_SIZE_S * BUFFER_0_15_THRESHOLD) {
+      Timber.d("1");
+      effectiveBitrate = (long) (effectiveBitrate * BUFFER_0_3_MULTIPLIER);
 
+    } else if (bufferLengthS < (float) DEFAULT_BUFFER_SIZE_S * BUFFER_0_30_THRESHOLD) {
+      Timber.d("2");
+      effectiveBitrate = (long) (effectiveBitrate * BUFFER_0_5_MULTIPLIER);
 
-    selectedIndex = determineIdealSelectedIndex(nowMs, bitrateEstimate);
+    } else if (bufferLengthS < (float) DEFAULT_BUFFER_SIZE_S * BUFFER_0_50_THRESHOLD) {
+      Timber.d("3");
+      effectiveBitrate = (long) (effectiveBitrate * BUFFER_1_MULTIPLIER);
+
+    } else {
+      Timber.d("4");
+      effectiveBitrate = (long) (effectiveBitrate * (BUFFER_1_MULTIPLIER + (BUFFER_0_50_EXTRA * bufferPercent )));
+    }
+
+    Timber.d("Muller estimated bitrate: %d", effectiveBitrate);
+
+    selectedIndex = determineIdealSelectedIndex(nowMs, effectiveBitrate);
+    Timber.d("Selected index: " + selectedIndex);
 
 
     // If we adapted, update the trigger.

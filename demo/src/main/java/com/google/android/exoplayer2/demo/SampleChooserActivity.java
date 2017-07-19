@@ -146,8 +146,6 @@ public class SampleChooserActivity extends Activity {
     }else if (mullerRadioBtn.isChecked()){
       algorithm = PlayerActivity.ADAPTATION_ALGORITHM_MULLER;
     }
-    Timber.d("Algorithm selected: %d", algorithm);
-    System.out.println("Algorithm selected: %d"+ algorithm);
 
     Intent i = sample.buildIntent(this);
     i.putExtra(PlayerActivity.ADAPTATION_ALGORITHM_EXTRA, algorithm);
@@ -177,8 +175,6 @@ public class SampleChooserActivity extends Activity {
       }else if (mullerRadioBtn.isChecked()){
         algorithm = PlayerActivity.ADAPTATION_ALGORITHM_MULLER;
       }
-      Timber.d("Algorithm selected: %d", algorithm);
-      System.out.println("Algorithm selected: %d"+ algorithm);
 
       Intent i = lastSelectedSample.buildIntent(this);
       i.putExtra(PlayerActivity.ADAPTATION_ALGORITHM_EXTRA, algorithm);
