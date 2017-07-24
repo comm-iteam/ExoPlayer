@@ -5,6 +5,7 @@ import com.google.android.exoplayer2.extractor.ChunkIndex;
 import com.google.android.exoplayer2.source.TrackGroup;
 import com.google.android.exoplayer2.upstream.BandwidthMeter;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import hugo.weaving.DebugLog;
@@ -29,6 +30,9 @@ public class LookAheadTrackSelection2 extends BaseTrackSelection {
   private BandwidthMeter bandwidthMeter;
   private final int maxInitialBitrate;
   private final float bandwidthFraction;
+
+  private ArrayList<Integer> playedQualities = new ArrayList<>();
+
 
   /**
    * @param group  The {@link TrackGroup}. Must not be null.

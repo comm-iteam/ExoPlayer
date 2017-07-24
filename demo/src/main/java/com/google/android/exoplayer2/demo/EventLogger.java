@@ -17,6 +17,7 @@ package com.google.android.exoplayer2.demo;
 
 import android.os.SystemClock;
 import android.util.Log;
+import android.util.Pair;
 import android.view.Surface;
 
 import com.google.android.exoplayer2.C;
@@ -52,8 +53,10 @@ import com.google.android.exoplayer2.video.VideoRendererEventListener;
 
 import java.io.IOException;
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.Locale;
 
+import hugo.weaving.DebugLog;
 import timber.log.Timber;
 
 /**
@@ -83,8 +86,14 @@ import timber.log.Timber;
   private int playerState = ExoPlayer.STATE_IDLE;
   public int stopCount = 0;
   private long playerStateTimestamp = 0;
-  public long initialBuffering=0;
+  public long initialBuffering = 0;
   public long stoppedTime = 0;
+
+  private ArrayList<Pair<Integer, Long>> playedQualities = new ArrayList<>();
+  public long globalQuality = 0;
+  public long globalDuration = 0;
+
+  public int formatChanges = 0;
 
   public EventLogger(MappingTrackSelector trackSelector) {
     this.trackSelector = trackSelector;
@@ -114,7 +123,7 @@ import timber.log.Timber;
       Timber.d("Number of stops: %d", stopCount);
       long stopTime = playerStateTimestamp - oldStateTimestamp;
 
-      if (stopCount == 1){
+      if (stopCount == 1) {
         initialBuffering = stopTime;
       }
 
@@ -295,6 +304,8 @@ import timber.log.Timber;
   public void onVideoInputFormatChanged(Format format) {
     Log.d(TAG, "videoFormatChan [" + getSessionTimeString() + ", " + Format.toLogString(format)
         + "]");
+
+    formatChanges++;
   }
 
   @Override
@@ -372,10 +383,21 @@ import timber.log.Timber;
   }
 
   @Override
+  @DebugLog
   public void onLoadCompleted(DataSpec dataSpec, int dataType, int trackType, Format trackFormat,
                               int trackSelectionReason, Object trackSelectionData, long mediaStartTimeMs,
                               long mediaEndTimeMs, long elapsedRealtimeMs, long loadDurationMs, long bytesLoaded) {
     // Do nothing.
+
+    if (trackFormat != null) {
+      Integer quality = Integer.valueOf(trackFormat.id);
+      long duration = mediaEndTimeMs - mediaStartTimeMs;
+      playedQualities.add(new Pair<>(quality, duration));
+      globalQuality += quality * duration;
+      globalDuration += duration;
+      Timber.d("Completed: %d, %d, %d", quality, duration, globalDuration);
+    }
+
   }
 
   @Override

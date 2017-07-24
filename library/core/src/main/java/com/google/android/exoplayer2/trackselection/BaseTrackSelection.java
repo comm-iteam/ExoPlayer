@@ -134,6 +134,11 @@ public abstract class BaseTrackSelection implements TrackSelection {
   }
 
   @Override
+  public ChunkIndex getSelectedChunkIndex() {
+    return chunkIndices[getSelectedIndex()];
+  }
+
+  @Override
   public final int getSelectedIndexInTrackGroup() {
     int selectedIndexInTrackGroup =tracks[getSelectedIndex()];
     return selectedIndexInTrackGroup;

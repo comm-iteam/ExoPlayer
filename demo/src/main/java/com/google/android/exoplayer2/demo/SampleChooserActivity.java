@@ -185,22 +185,30 @@ public class SampleChooserActivity extends Activity {
         float stopsAvg = 0;
         long bufferingAvg = 0;
         long stoppedTimeAvg = 0;
+        float meanQualityAvg = 0;
+        float formatChangesAvg = 0;
         for (int i = 0; i < playbackReports.size(); i++) {
           PlaybackReport pr = playbackReports.get(i);
-          Timber.d("Loop: %d, stops: %d, buffering: %f, stopped: %f", i, (pr.getStops() - 1), pr.getInitialBuffering() / 1000f, pr.getStallTime() / 1000f);
+          Timber.d("Loop: %d, stops: %d, buffering: %f, stopped: %f average quality: %f",
+              i, (pr.getStops() - 1), pr.getInitialBuffering() / 1000f, pr.getStallTime() / 1000f, pr.getMeanQuality());
           stopsAvg += (pr.getStops() - 1);
           bufferingAvg += pr.getInitialBuffering();
           stoppedTimeAvg += pr.getStallTime();
+          meanQualityAvg += pr.getMeanQuality();
+          formatChangesAvg += pr.getFormatChanges();
         }
         stopsAvg = stopsAvg / playbackReports.size();
         bufferingAvg = bufferingAvg / playbackReports.size();
         stoppedTimeAvg = stoppedTimeAvg / playbackReports.size();
-        Timber.d("Average: stops: %f, buffering: %f, stopped: %f", stopsAvg, bufferingAvg / 1000f, stoppedTimeAvg / 1000f);
+        meanQualityAvg = meanQualityAvg / playbackReports.size();
+        formatChangesAvg = formatChangesAvg / playbackReports.size();
+        Timber.d("Average: stops: %f, buffering: %f, stopped: %f, average quality: %f, format changes: %f",
+            stopsAvg, bufferingAvg / 1000f, stoppedTimeAvg / 1000f, meanQualityAvg, formatChangesAvg);
 
         @SuppressLint("DefaultLocale")
         AlertDialog.Builder builder = new AlertDialog.Builder(this)
-            .setMessage(String.format("Stops: %f, buffering: %f, stopped: %f",
-                stopsAvg, bufferingAvg / 1000f, stoppedTimeAvg / 1000f));
+            .setMessage(String.format("Stops: %f, buffering: %f, stopped: %f, average quality: %f, format changes: %f",
+                stopsAvg, bufferingAvg / 1000f, stoppedTimeAvg / 1000f, meanQualityAvg, formatChangesAvg ));
 
         AlertDialog ad = builder.create();
         ad.show();

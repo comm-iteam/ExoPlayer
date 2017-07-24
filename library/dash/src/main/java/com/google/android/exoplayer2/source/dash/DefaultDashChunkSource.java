@@ -46,6 +46,8 @@ import com.google.android.exoplayer2.upstream.LoaderErrorThrower;
 import com.google.android.exoplayer2.util.MimeTypes;
 import com.google.android.exoplayer2.util.Util;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import hugo.weaving.DebugLog;
@@ -215,6 +217,7 @@ public class DefaultDashChunkSource implements DashChunkSource {
       // The index doesn't define any segments.
       out.endOfStream = !manifest.dynamic || (periodIndex < manifest.getPeriodCount() - 1);
 //      Timber.d("COMM:3 getNextChunk:populate out chunk holder with end of stream: %s", out);
+      Timber.d("End of stream!");
       return;
     }
 
@@ -261,6 +264,7 @@ public class DefaultDashChunkSource implements DashChunkSource {
 
     int maxSegmentCount = Math.min(maxSegmentsPerLoad, lastAvailableSegmentNum - segmentNum + 1);
     //Timber.d("COMM: Llamando a getSelectedFormat desde getNextChunk (al final)...");
+    Timber.d("Representation Holder format id: %s", representationHolder.getRepresentation().format.id);
     out.chunk = newMediaChunk(representationHolder, dataSource, trackSelection.getSelectedFormat(),
         trackSelection.getSelectionReason(), trackSelection.getSelectionData(), segmentNum,
         maxSegmentCount);
@@ -508,6 +512,10 @@ public class DefaultDashChunkSource implements DashChunkSource {
     @Override
     public String toString() {
       return "Format: "+representation.format +" Index: " + segmentIndex;
+    }
+
+    public Representation getRepresentation() {
+      return representation;
     }
   }
 

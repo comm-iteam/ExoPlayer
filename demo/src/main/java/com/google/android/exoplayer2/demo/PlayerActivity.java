@@ -456,7 +456,10 @@ public class PlayerActivity extends Activity implements OnClickListener, ExoPlay
     if (playbackState == ExoPlayer.STATE_ENDED) {
       showControls();
 
-      PlaybackReport pr = new PlaybackReport(eventLogger.stopCount, eventLogger.stoppedTime, eventLogger.initialBuffering);
+      float meanQuality = (float)eventLogger.globalQuality / (float)eventLogger.globalDuration;
+      PlaybackReport pr = new PlaybackReport(eventLogger.stopCount, eventLogger.stoppedTime,
+          eventLogger.initialBuffering, meanQuality, eventLogger.formatChanges);
+//      Timber.d("Player position on finish: %d", player.getCurrentPosition());
       Intent result = new Intent();
       result.putExtra(PLAYBACK_REPORT_EXTRA, pr);
       setResult(RESULT_OK,result);

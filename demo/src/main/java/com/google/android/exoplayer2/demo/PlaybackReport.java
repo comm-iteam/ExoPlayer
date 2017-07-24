@@ -5,16 +5,21 @@ import java.io.Serializable;
 
 public class PlaybackReport implements Serializable {
 
-  public PlaybackReport(int stops, long stallTime, long initialBuffering) {
+  public PlaybackReport(int stops, long stallTime, long initialBuffering,
+                        float meanQuality, int formatChanges) {
     this.stops = stops;
     this.stallTime = stallTime;
     this.initialBuffering = initialBuffering;
+    this.meanQuality = meanQuality;
+    this.formatChanges = formatChanges;
+
   }
 
   private int stops;
   private long stallTime;
   private long initialBuffering;
-
+  private float meanQuality;
+  private int formatChanges;
 
   public int getStops() {
     return stops;
@@ -38,5 +43,13 @@ public class PlaybackReport implements Serializable {
 
   public void setInitialBuffering(long initialBuffering) {
     this.initialBuffering = initialBuffering;
+  }
+
+  public float getMeanQuality() {
+    return meanQuality;
+  }
+
+  public int getFormatChanges() {
+    return formatChanges;
   }
 }

@@ -101,6 +101,8 @@ public interface TrackSelection {
    */
   Format getSelectedFormat();
 
+  ChunkIndex getSelectedChunkIndex();
+
   /**
    * Returns the index in the track group of the individual selected track.
    */
