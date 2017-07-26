@@ -189,8 +189,8 @@ public class SampleChooserActivity extends Activity {
         float formatChangesAvg = 0;
         for (int i = 0; i < playbackReports.size(); i++) {
           PlaybackReport pr = playbackReports.get(i);
-          Timber.d("Loop: %d, stops: %d, buffering: %f, stopped: %f average quality: %f",
-              i, (pr.getStops() - 1), pr.getInitialBuffering() / 1000f, pr.getStallTime() / 1000f, pr.getMeanQuality());
+          Timber.d("Loop: %d, stops: %d, buffering: %f, stopped: %f average quality: %f, format changes: %d",
+              i, (pr.getStops() - 1), pr.getInitialBuffering() / 1000f, pr.getStallTime() / 1000f, pr.getMeanQuality(), pr.getFormatChanges());
           stopsAvg += (pr.getStops() - 1);
           bufferingAvg += pr.getInitialBuffering();
           stoppedTimeAvg += pr.getStallTime();

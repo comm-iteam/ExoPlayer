@@ -16,12 +16,17 @@
 package com.google.android.exoplayer2.upstream;
 
 import android.net.Uri;
+import android.os.SystemClock;
 import android.text.TextUtils;
 import android.util.Log;
+import android.util.Pair;
+
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.util.Assertions;
 import com.google.android.exoplayer2.util.Predicate;
 import com.google.android.exoplayer2.util.Util;
+import com.google.common.util.concurrent.RateLimiter;
+
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,6 +37,7 @@ import java.net.HttpURLConnection;
 import java.net.NoRouteToHostException;
 import java.net.ProtocolException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -83,6 +89,8 @@ public class DefaultHttpDataSource implements HttpDataSource {
 
   private long bytesSkipped;
   private long bytesRead;
+
+  private ArrayList<Pair<Integer, Integer>> myThrottles = new ArrayList<>();
 
   /**
    * @param userAgent The User-Agent string that should be used.
@@ -153,6 +161,16 @@ public class DefaultHttpDataSource implements HttpDataSource {
     this.readTimeoutMillis = readTimeoutMillis;
     this.allowCrossProtocolRedirects = allowCrossProtocolRedirects;
     this.defaultRequestProperties = defaultRequestProperties;
+
+    myThrottles.add(Pair.create(0  , 2_000_000));
+    myThrottles.add(Pair.create(100, 4_000_000));
+    myThrottles.add(Pair.create(200, 8_000_000));
+    myThrottles.add(Pair.create(300, 4_000_000));
+    myThrottles.add(Pair.create(400, 2_000_000));
+    myThrottles.add(Pair.create(500, 8_000_000));
+
+
+    throttlingStartTime = SystemClock.elapsedRealtime();
   }
 
   @Override
@@ -260,11 +278,53 @@ public class DefaultHttpDataSource implements HttpDataSource {
     return bytesToRead;
   }
 
+
+  private long throttlingStartTime;
+  private int throttlePos = -1;
+  private RateLimiter rateLimiter = RateLimiter.create(1);
+
+
+  private void updateThrottle() {
+    if (throttlePos == -1){
+      setThrottlePos(0);
+    }
+
+    long now = SystemClock.elapsedRealtime();
+    float runningTimeS = (now - throttlingStartTime) / 1000f;
+
+    for (int i = throttlePos; i < myThrottles.size(); i++) {
+      if (runningTimeS > myThrottles.get(i).first) {
+        if (i > throttlePos) {
+          setThrottlePos(i);
+        }
+      } else {
+        break;
+      }
+    }
+  }
+
+  private void setThrottlePos(int pos){
+    throttlePos = pos;
+    rateLimiter.setRate(myThrottles.get(pos).second);
+    System.out.println("New throttle pos: " + throttlePos);
+  }
+
+
   @Override
   public int read(byte[] buffer, int offset, int readLength) throws HttpDataSourceException {
+    updateThrottle();
+
+
+
     try {
       skipInternal();
-      return readInternal(buffer, offset, readLength);
+      int read = readInternal(buffer, offset, readLength);
+
+      if (read> 0) {
+        rateLimiter.acquire(read * 8);
+      }
+
+      return read;
     } catch (IOException e) {
       throw new HttpDataSourceException(e, dataSpec, HttpDataSourceException.TYPE_READ);
     }

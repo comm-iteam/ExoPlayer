@@ -44,6 +44,8 @@ dependencies {
     androidTestCompile 'org.mockito:mockito-core:' + mockitoVersion
 
     compile 'com.jakewharton.timber:timber:4.5.1'
+
+    compile 'com.google.guava:guava:22.0-android'
 }
 
 ext {
