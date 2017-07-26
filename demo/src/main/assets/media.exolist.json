@@ -2,45 +2,9 @@
   {
     "name": "UPV | COMM | Elephants Dream",
     "samples": [
-
       {
-        "name": "Elephants Dream | VP9 | No limit",
+        "name": "Elephants Dream | VP9",
         "uri": "https://lookahead.iteam.upv.es/ed_vp9/ed_webm.mpd",
-        "extension": "mpd"
-      },
-      {
-        "name": "Elephants Dream | VP9 | 1Mbps",
-        "uri": "https://lookahead.iteam.upv.es/ed_vp9_1mbps/ed_webm.mpd",
-        "extension": "mpd"
-      },
-      {
-        "name": "Elephants Dream | VP9 | 2Mbps",
-        "uri": "https://lookahead.iteam.upv.es/ed_vp9_2mbps/ed_webm.mpd",
-        "extension": "mpd"
-      },
-      {
-        "name": "Elephants Dream | VP9 | 5Mbps",
-        "uri": "https://lookahead.iteam.upv.es/ed_vp9_5mbps/ed_webm.mpd",
-        "extension": "mpd"
-      },
-      {
-        "name": "Elephants Dream | VP9 | 10Mbps",
-        "uri": "https://lookahead.iteam.upv.es/ed_vp9_10mbps/ed_webm.mpd",
-        "extension": "mpd"
-      },
-      {
-        "name": "Elephants Dream | VP9 | 20Mbps",
-        "uri": "https://lookahead.iteam.upv.es/ed_vp9_20mbps/ed_webm.mpd",
-        "extension": "mpd"
-      },
-      {
-        "name": "Elephants Dream | VP9 | 50Mbps",
-        "uri": "https://lookahead.iteam.upv.es/ed_vp9_50mbps/ed_webm.mpd",
-        "extension": "mpd"
-      },
-      {
-        "name": "Elephants Dream | VP9 | 100Mbps",
-        "uri": "https://lookahead.iteam.upv.es/ed_vp9_100mbps/ed_webm.mpd",
         "extension": "mpd"
       }
     ]
@@ -48,45 +12,9 @@
   {
     "name": "UPV | COMM | Tears of Steel",
     "samples": [
-
       {
-        "name": "Tears of Steel | VP9 | No limit",
+        "name": "Tears of Steel | VP9",
         "uri": "https://lookahead.iteam.upv.es/tos_vp9/tos_webm.mpd",
-        "extension": "mpd"
-      },
-      {
-        "name": "Tears of Steel | VP9 | 1Mbps",
-        "uri": "https://lookahead.iteam.upv.es/tos_vp9_1mbps/tos_webm.mpd",
-        "extension": "mpd"
-      },
-      {
-        "name": "Tears of Steel | VP9 | 2Mbps",
-        "uri": "https://lookahead.iteam.upv.es/tos_vp9_2mbps/tos_webm.mpd",
-        "extension": "mpd"
-      },
-      {
-        "name": "Tears of Steel | VP9 | 5Mbps",
-        "uri": "https://lookahead.iteam.upv.es/tos_vp9_5mbps/tos_webm.mpd",
-        "extension": "mpd"
-      },
-      {
-        "name": "Tears of Steel | VP9 | 10Mbps",
-        "uri": "https://lookahead.iteam.upv.es/tos_vp9_10mbps/tos_webm.mpd",
-        "extension": "mpd"
-      },
-      {
-        "name": "Tears of Steel | VP9 | 20Mbps",
-        "uri": "https://lookahead.iteam.upv.es/tos_vp9_20mbps/tos_webm.mpd",
-        "extension": "mpd"
-      },
-      {
-        "name": "Tears of Steel | VP9 | 50Mbps",
-        "uri": "https://lookahead.iteam.upv.es/tos_vp9_50mbps/tos_webm.mpd",
-        "extension": "mpd"
-      },
-      {
-        "name": "Tears of Steel | VP9 | 100Mbps",
-        "uri": "https://lookahead.iteam.upv.es/tos_vp9_100mbps/tos_webm.mpd",
         "extension": "mpd"
       }
     ]

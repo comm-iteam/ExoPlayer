@@ -62,4 +62,23 @@
   <string name="lookaheadtrackselection">LookAheadTrackSelection</string>
   <string name="mullertrackselection">MullerTrackSelection</string>
 
+
+    <string-array name="algorithm_array">
+      <item>LookAheadTrackSelection</item>
+      <item>MullerTrackSelection</item>
+      <item>AdaptiveTrackSelection</item>
+    </string-array>
+
+
+    <string-array name="bandwidth_array">
+        <item>No Limit</item>
+        <item>1mbps</item>
+        <item>5mbps</item>
+        <item>10mbps</item>
+        <item>20mbps</item>
+        <item>Loop 2,4,8,4mbps | switch every 100s</item>
+        <item>10mbps with 10s bw drop to 500kbps every 100s</item>
+    </string-array>
+
+
 </resources>

@@ -30,11 +30,14 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.ExpandableListView.OnChildClickListener;
 import android.widget.RadioButton;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -61,15 +64,16 @@ import timber.log.Timber;
 /**
  * An activity for selecting from a list of samples.
  */
-public class SampleChooserActivity extends Activity {
+public class SampleChooserActivity extends Activity implements AdapterView.OnItemSelectedListener {
 
   private static final String TAG = "SampleChooserActivity";
 
   private static final int ACTIVITY_REQUEST_CODE = 1234;
 
-  private RadioButton lookAheadRadioBtn;
-  private RadioButton adaptiveRadioBtn;
-  private RadioButton mullerRadioBtn;
+  private Spinner algorithmSpinner;
+  private int selectedAlgorithm;
+  private Spinner rateLimiterSpinner;
+  private int selectedRate;
 
   private EditText numberRepetitionsEditText;
   private Sample lastSelectedSample;
@@ -81,9 +85,20 @@ public class SampleChooserActivity extends Activity {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.sample_chooser_activity);
 
-    lookAheadRadioBtn = (RadioButton) findViewById(R.id.lookAheadRadioButton);
-    adaptiveRadioBtn = (RadioButton) findViewById(R.id.adaptiveRadioButton);
-    mullerRadioBtn = (RadioButton) findViewById(R.id.mullerRadioButton);
+    algorithmSpinner = (Spinner) findViewById(R.id.algorithmSpinner);
+    ArrayAdapter<CharSequence> algAdapter = ArrayAdapter.createFromResource(this,
+        R.array.algorithm_array, android.R.layout.simple_spinner_item);
+    algAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+    algorithmSpinner.setOnItemSelectedListener(this);
+    algorithmSpinner.setAdapter(algAdapter);
+
+
+    rateLimiterSpinner = (Spinner) findViewById(R.id.bitRateSpinner);
+    ArrayAdapter<CharSequence> rateAdapter = ArrayAdapter.createFromResource(this,
+        R.array.bandwidth_array, android.R.layout.simple_spinner_item);
+    rateAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+    rateLimiterSpinner.setOnItemSelectedListener(this);
+    rateLimiterSpinner.setAdapter(rateAdapter);
 
     numberRepetitionsEditText = (EditText) findViewById(R.id.numberRepetitions);
 
@@ -138,13 +153,16 @@ public class SampleChooserActivity extends Activity {
     playbackReports.clear();
 
 
-    int algorithm = PlayerActivity.ADAPTATION_ALGORITHM_DEFAULT;
-    if (lookAheadRadioBtn.isChecked()) {
-      algorithm = PlayerActivity.ADAPTATION_ALGORITHM_LOOK_AHEAD;
-    } else if (adaptiveRadioBtn.isChecked()){
-      algorithm = PlayerActivity.ADAPTATION_ALGORITHM_DEFAULT;
-    }else if (mullerRadioBtn.isChecked()){
-      algorithm = PlayerActivity.ADAPTATION_ALGORITHM_MULLER;
+    int algorithm;
+    switch (selectedAlgorithm) {
+      case 0:
+        algorithm = PlayerActivity.ADAPTATION_ALGORITHM_LOOK_AHEAD;
+        break;
+      case 1:
+        algorithm = PlayerActivity.ADAPTATION_ALGORITHM_MULLER;
+        break;
+      default:
+        algorithm = PlayerActivity.ADAPTATION_ALGORITHM_DEFAULT;
     }
 
     Intent i = sample.buildIntent(this);
@@ -167,13 +185,16 @@ public class SampleChooserActivity extends Activity {
 
 
     if (--numberRepetitions > 0) {
-      int algorithm = PlayerActivity.ADAPTATION_ALGORITHM_DEFAULT;
-      if (lookAheadRadioBtn.isChecked()) {
-        algorithm = PlayerActivity.ADAPTATION_ALGORITHM_LOOK_AHEAD;
-      } else if (adaptiveRadioBtn.isChecked()){
-        algorithm = PlayerActivity.ADAPTATION_ALGORITHM_DEFAULT;
-      }else if (mullerRadioBtn.isChecked()){
-        algorithm = PlayerActivity.ADAPTATION_ALGORITHM_MULLER;
+      int algorithm;
+      switch (selectedAlgorithm) {
+        case 0:
+          algorithm = PlayerActivity.ADAPTATION_ALGORITHM_LOOK_AHEAD;
+          break;
+        case 1:
+          algorithm = PlayerActivity.ADAPTATION_ALGORITHM_MULLER;
+          break;
+        default:
+          algorithm = PlayerActivity.ADAPTATION_ALGORITHM_DEFAULT;
       }
 
       Intent i = lastSelectedSample.buildIntent(this);
@@ -208,12 +229,58 @@ public class SampleChooserActivity extends Activity {
         @SuppressLint("DefaultLocale")
         AlertDialog.Builder builder = new AlertDialog.Builder(this)
             .setMessage(String.format("Stops: %f, buffering: %f, stopped: %f, average quality: %f, format changes: %f",
-                stopsAvg, bufferingAvg / 1000f, stoppedTimeAvg / 1000f, meanQualityAvg, formatChangesAvg ));
+                stopsAvg, bufferingAvg / 1000f, stoppedTimeAvg / 1000f, meanQualityAvg, formatChangesAvg));
 
         AlertDialog ad = builder.create();
         ad.show();
       }
     }
+
+  }
+
+  @Override
+  @DebugLog
+  public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+    if (parent.equals(algorithmSpinner)) {
+      Timber.d("Algorithm Selected: %d", position);
+      selectedAlgorithm = position;
+    } else if (parent.equals(rateLimiterSpinner)) {
+      Timber.d("Rate Selected: %d", position);
+      selectedRate = position;
+
+      switch (selectedRate) {
+        case 0:
+          ((DemoApplication) getApplication()).setRateThrottling(null);
+          break;
+        case 1:
+          ((DemoApplication) getApplication()).setRateThrottling(RateThrottles.getPlain1mbps());
+          break;
+        case 2:
+          ((DemoApplication) getApplication()).setRateThrottling(RateThrottles.getPlain5mbps());
+          break;
+        case 3:
+          ((DemoApplication) getApplication()).setRateThrottling(RateThrottles.getPlain10mbps());
+          break;
+        case 4:
+          ((DemoApplication) getApplication()).setRateThrottling(RateThrottles.getPlain20mbps());
+          break;
+        case 5:
+          ((DemoApplication) getApplication()).setRateThrottling(RateThrottles.getPlainStairLoop01());
+          break;
+        case 6:
+          ((DemoApplication) getApplication()).setRateThrottling(RateThrottles.getPlainWithCut01());
+          break;
+        default:
+          ((DemoApplication) getApplication()).setRateThrottling(null);
+          break;
+      }
+
+    }
+  }
+
+  @Override
+  @DebugLog
+  public void onNothingSelected(AdapterView<?> parent) {
 
   }
 

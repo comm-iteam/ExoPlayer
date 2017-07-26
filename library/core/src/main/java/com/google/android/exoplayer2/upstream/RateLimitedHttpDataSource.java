@@ -16,12 +16,17 @@
 package com.google.android.exoplayer2.upstream;
 
 import android.net.Uri;
+import android.os.SystemClock;
 import android.text.TextUtils;
 import android.util.Log;
+import android.util.Pair;
+
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.util.Assertions;
 import com.google.android.exoplayer2.util.Predicate;
 import com.google.android.exoplayer2.util.Util;
+import com.google.common.util.concurrent.RateLimiter;
+
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,8 +37,10 @@ import java.net.HttpURLConnection;
 import java.net.NoRouteToHostException;
 import java.net.ProtocolException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -43,10 +50,9 @@ import java.util.regex.Pattern;
  * <p>
  * By default this implementation will not follow cross-protocol redirects (i.e. redirects from
  * HTTP to HTTPS or vice versa). Cross-protocol redirects can be enabled by using the
- * {@link #DefaultHttpDataSource(String, Predicate, TransferListener, int, int, boolean,
- * RequestProperties)} constructor and passing {@code true} as the second last argument.
+ * {@link #RateLimitedHttpDataSource(String, Predicate, TransferListener, int, int, boolean, RequestProperties, ArrayList)} constructor and passing {@code true} as the second last argument.
  */
-public class DefaultHttpDataSource implements HttpDataSource {
+public class RateLimitedHttpDataSource implements HttpDataSource {
 
   /**
    * The default connection timeout, in milliseconds.
@@ -57,7 +63,7 @@ public class DefaultHttpDataSource implements HttpDataSource {
    */
   public static final int DEFAULT_READ_TIMEOUT_MILLIS = 8 * 1000;
 
-  private static final String TAG = "DefaultHttpDataSource";
+  private static final String TAG = "RateLimitHttpDataSource";
   private static final int MAX_REDIRECTS = 20; // Same limit as okhttp.
   private static final long MAX_BYTES_TO_DRAIN = 2048;
   private static final Pattern CONTENT_RANGE_HEADER =
@@ -71,7 +77,8 @@ public class DefaultHttpDataSource implements HttpDataSource {
   private final Predicate<String> contentTypePredicate;
   private final RequestProperties defaultRequestProperties;
   private final RequestProperties requestProperties;
-  private final TransferListener<? super DefaultHttpDataSource> listener;
+  private final TransferListener<? super RateLimitedHttpDataSource> listener;
+
 
   private DataSpec dataSpec;
   private HttpURLConnection connection;
@@ -84,25 +91,30 @@ public class DefaultHttpDataSource implements HttpDataSource {
   private long bytesSkipped;
   private long bytesRead;
 
+  private final ArrayList<Pair<Integer, Integer>> rateThrottling;
+  private long throttlingStartTime;
+  private int throttlePos = -1;
+  private RateLimiter rateLimiter;
+
   /**
    * @param userAgent The User-Agent string that should be used.
    * @param contentTypePredicate An optional {@link Predicate}. If a content type is rejected by the
-   *     predicate then a {@link HttpDataSource.InvalidContentTypeException} is thrown from
+   *     predicate then a {@link InvalidContentTypeException} is thrown from
    *     {@link #open(DataSpec)}.
    */
-  public DefaultHttpDataSource(String userAgent, Predicate<String> contentTypePredicate) {
+  public RateLimitedHttpDataSource(String userAgent, Predicate<String> contentTypePredicate) {
     this(userAgent, contentTypePredicate, null);
   }
 
   /**
    * @param userAgent The User-Agent string that should be used.
    * @param contentTypePredicate An optional {@link Predicate}. If a content type is rejected by the
-   *     predicate then a {@link HttpDataSource.InvalidContentTypeException} is thrown from
+   *     predicate then a {@link InvalidContentTypeException} is thrown from
    *     {@link #open(DataSpec)}.
    * @param listener An optional listener.
    */
-  public DefaultHttpDataSource(String userAgent, Predicate<String> contentTypePredicate,
-                               TransferListener<? super DefaultHttpDataSource> listener) {
+  public RateLimitedHttpDataSource(String userAgent, Predicate<String> contentTypePredicate,
+                                   TransferListener<? super RateLimitedHttpDataSource> listener) {
     this(userAgent, contentTypePredicate, listener, DEFAULT_CONNECT_TIMEOUT_MILLIS,
         DEFAULT_READ_TIMEOUT_MILLIS);
   }
@@ -110,7 +122,7 @@ public class DefaultHttpDataSource implements HttpDataSource {
   /**
    * @param userAgent The User-Agent string that should be used.
    * @param contentTypePredicate An optional {@link Predicate}. If a content type is rejected by the
-   *     predicate then a {@link HttpDataSource.InvalidContentTypeException} is thrown from
+   *     predicate then a {@link InvalidContentTypeException} is thrown from
    *     {@link #open(DataSpec)}.
    * @param listener An optional listener.
    * @param connectTimeoutMillis The connection timeout, in milliseconds. A timeout of zero is
@@ -118,33 +130,34 @@ public class DefaultHttpDataSource implements HttpDataSource {
    * @param readTimeoutMillis The read timeout, in milliseconds. A timeout of zero is interpreted
    *     as an infinite timeout.
    */
-  public DefaultHttpDataSource(String userAgent, Predicate<String> contentTypePredicate,
-                               TransferListener<? super DefaultHttpDataSource> listener, int connectTimeoutMillis,
-                               int readTimeoutMillis) {
+  public RateLimitedHttpDataSource(String userAgent, Predicate<String> contentTypePredicate,
+                                   TransferListener<? super RateLimitedHttpDataSource> listener, int connectTimeoutMillis,
+                                   int readTimeoutMillis) {
     this(userAgent, contentTypePredicate, listener, connectTimeoutMillis, readTimeoutMillis, false,
-        null);
+        null, null);
   }
 
   /**
    * @param userAgent The User-Agent string that should be used.
    * @param contentTypePredicate An optional {@link Predicate}. If a content type is rejected by the
-   *     predicate then a {@link HttpDataSource.InvalidContentTypeException} is thrown from
+   *     predicate then a {@link InvalidContentTypeException} is thrown from
    *     {@link #open(DataSpec)}.
    * @param listener An optional listener.
    * @param connectTimeoutMillis The connection timeout, in milliseconds. A timeout of zero is
-   *     interpreted as an infinite timeout. Pass {@link #DEFAULT_CONNECT_TIMEOUT_MILLIS} to use
-   *     the default value.
+*     interpreted as an infinite timeout. Pass {@link #DEFAULT_CONNECT_TIMEOUT_MILLIS} to use
+*     the default value.
    * @param readTimeoutMillis The read timeout, in milliseconds. A timeout of zero is interpreted
-   *     as an infinite timeout. Pass {@link #DEFAULT_READ_TIMEOUT_MILLIS} to use the default value.
+*     as an infinite timeout. Pass {@link #DEFAULT_READ_TIMEOUT_MILLIS} to use the default value.
    * @param allowCrossProtocolRedirects Whether cross-protocol redirects (i.e. redirects from HTTP
-   *     to HTTPS and vice versa) are enabled.
+*     to HTTPS and vice versa) are enabled.
    * @param defaultRequestProperties The default request properties to be sent to the server as
-   *     HTTP headers or {@code null} if not required.
+*     HTTP headers or {@code null} if not required.
+   * @param rateThrottling
    */
-  public DefaultHttpDataSource(String userAgent, Predicate<String> contentTypePredicate,
-                               TransferListener<? super DefaultHttpDataSource> listener, int connectTimeoutMillis,
-                               int readTimeoutMillis, boolean allowCrossProtocolRedirects,
-                               RequestProperties defaultRequestProperties) {
+  public RateLimitedHttpDataSource(String userAgent, Predicate<String> contentTypePredicate,
+                                   TransferListener<? super RateLimitedHttpDataSource> listener, int connectTimeoutMillis,
+                                   int readTimeoutMillis, boolean allowCrossProtocolRedirects,
+                                   RequestProperties defaultRequestProperties, ArrayList<Pair<Integer, Integer>> rateThrottling) {
     this.userAgent = Assertions.checkNotEmpty(userAgent);
     this.contentTypePredicate = contentTypePredicate;
     this.listener = listener;
@@ -153,6 +166,14 @@ public class DefaultHttpDataSource implements HttpDataSource {
     this.readTimeoutMillis = readTimeoutMillis;
     this.allowCrossProtocolRedirects = allowCrossProtocolRedirects;
     this.defaultRequestProperties = defaultRequestProperties;
+
+    this.rateThrottling = rateThrottling;
+
+    throttlingStartTime = SystemClock.elapsedRealtime();
+
+
+
+    rateLimiter = RateLimiter.create(Long.MAX_VALUE, 1, TimeUnit.MILLISECONDS);
   }
 
   @Override
@@ -260,11 +281,53 @@ public class DefaultHttpDataSource implements HttpDataSource {
     return bytesToRead;
   }
 
+  private void updateThrottle() {
+    if (rateThrottling != null) {
+      if (throttlePos == -1) {
+        setThrottlePos(0);
+      }
+
+      long now = SystemClock.elapsedRealtime();
+      float runningTimeS = (now - throttlingStartTime) / 1000f;
+
+      int newThrottlePos;
+      for (newThrottlePos = throttlePos; newThrottlePos < rateThrottling.size() - 1; newThrottlePos++) {
+        int nextTime = rateThrottling.get(newThrottlePos + 1).first;
+        if (runningTimeS < nextTime) {
+          break;
+        }
+      }
+
+      if (newThrottlePos != throttlePos) {
+        int bitrate = rateThrottling.get(newThrottlePos).second;
+        if (bitrate == -1) {
+          throttlingStartTime = now;
+          newThrottlePos = 0;
+        }
+        setThrottlePos(newThrottlePos);
+      }
+    }
+  }
+
+  private void setThrottlePos(int pos){
+    throttlePos = pos;
+    rateLimiter.setRate(rateThrottling.get(pos).second);
+    System.out.println("New throttle pos: " + throttlePos);
+  }
+
+
   @Override
   public int read(byte[] buffer, int offset, int readLength) throws HttpDataSourceException {
+    updateThrottle();
     try {
       skipInternal();
-      return readInternal(buffer, offset, readLength);
+      int read = readInternal(buffer, offset, readLength);
+
+      if (read> 0) {
+        rateLimiter.acquire(read * 8);
+      }
+
+      return read;
     } catch (IOException e) {
       throw new HttpDataSourceException(e, dataSpec, HttpDataSourceException.TYPE_READ);
     }
@@ -361,8 +424,8 @@ public class DefaultHttpDataSource implements HttpDataSource {
           || responseCode == HttpURLConnection.HTTP_MOVED_TEMP
           || responseCode == HttpURLConnection.HTTP_SEE_OTHER
           || (postBody == null
-          && (responseCode == 307 /* HTTP_TEMP_REDIRECT */
-          || responseCode == 308 /* HTTP_PERM_REDIRECT */))) {
+              && (responseCode == 307 /* HTTP_TEMP_REDIRECT */
+                  || responseCode == 308 /* HTTP_PERM_REDIRECT */))) {
         // For 300, 301, 302, and 303 POST requests follow the redirect and are transformed into
         // GET requests. For 307 and 308 POST requests are not redirected.
         postBody = null;
@@ -389,7 +452,7 @@ public class DefaultHttpDataSource implements HttpDataSource {
    * @param followRedirects Whether to follow redirects.
    */
   private HttpURLConnection makeConnection(URL url, byte[] postBody, long position,
-                                           long length, boolean allowGzip, boolean followRedirects) throws IOException {
+      long length, boolean allowGzip, boolean followRedirects) throws IOException {
     HttpURLConnection connection = (HttpURLConnection) url.openConnection();
     connection.setConnectTimeout(connectTimeoutMillis);
     connection.setReadTimeout(readTimeoutMillis);
@@ -407,6 +470,8 @@ public class DefaultHttpDataSource implements HttpDataSource {
         rangeRequest += (position + length - 1);
       }
       connection.setRequestProperty("Range", rangeRequest);
+      // TODO does the range printing
+//      System.out.println("COMM: setRequestProperty: " + url + " " + rangeRequest) ;
     }
     connection.setRequestProperty("User-Agent", userAgent);
     if (!allowGzip) {
@@ -477,6 +542,7 @@ public class DefaultHttpDataSource implements HttpDataSource {
       }
     }
     String contentRangeHeader = connection.getHeaderField("Content-Range");
+//    System.out.println("COMM: contentRangeHeader: "+contentLengthHeader);
     if (!TextUtils.isEmpty(contentRangeHeader)) {
       Matcher matcher = CONTENT_RANGE_HEADER.matcher(contentRangeHeader);
       if (matcher.find()) {

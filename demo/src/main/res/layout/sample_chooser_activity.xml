@@ -14,7 +14,8 @@
      limitations under the License.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
+              xmlns:tools="http://schemas.android.com/tools"
+              android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
 
@@ -25,37 +26,49 @@
       android:gravity="center"
       android:orientation="vertical">
 
-    <RadioGroup
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        >
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="38dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
 
-      <RadioButton
-          android:id="@+id/lookAheadRadioButton"
+      <TextView
           android:layout_width="wrap_content"
           android:layout_height="wrap_content"
-          android:layout_weight="1"
-          android:checked="true"
-          android:text="@string/lookaheadtrackselection"/>
+          android:text="Algorithm:"
+          tools:text="Algorithm:"/>
 
-      <RadioButton
-          android:id="@+id/adaptiveRadioButton"
-          android:layout_width="wrap_content"
+      <Spinner
+          android:id="@+id/algorithmSpinner"
+          android:layout_width="match_parent"
           android:layout_height="wrap_content"
-          android:layout_weight="1"
-          android:text="@string/adaptivetrackselection"/>
-      <RadioButton
-          android:id="@+id/mullerRadioButton"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:layout_weight="1"
-          android:text="@string/mullertrackselection"/>
-
-    </RadioGroup>
+          android:layout_weight="1"/>
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="38dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+      <TextView
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:gravity="center_vertical"
+          android:text="Bandwidth:"
+          tools:text="Bandwidth:"/>
+
+      <Spinner
+          android:id="@+id/bitRateSpinner"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:layout_weight="1"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="38dp"
+        android:gravity="center_vertical"
         android:orientation="horizontal">
 
       <TextView

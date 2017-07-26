@@ -16,12 +16,17 @@
 package com.google.android.exoplayer2.demo;
 
 import android.app.Application;
+import android.util.Pair;
+
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
 import com.google.android.exoplayer2.upstream.HttpDataSource;
+import com.google.android.exoplayer2.upstream.RateLimitedHttpDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
+
+import java.util.ArrayList;
 
 import timber.log.Timber;
 
@@ -31,6 +36,8 @@ import timber.log.Timber;
 public class DemoApplication extends Application {
 
   protected String userAgent;
+
+  private ArrayList<Pair<Integer, Integer>> rateThrottling;
 
   @Override
   public void onCreate() {
@@ -42,7 +49,10 @@ public class DemoApplication extends Application {
       Timber.plant(new FileLoggingTree(this));
     }
 
+  }
 
+  public void setRateThrottling(ArrayList<Pair<Integer, Integer>> rateThrottling) {
+    this.rateThrottling = rateThrottling;
   }
 
   public DataSource.Factory buildDataSourceFactory(DefaultBandwidthMeter bandwidthMeter) {
@@ -51,7 +61,7 @@ public class DemoApplication extends Application {
   }
 
   public HttpDataSource.Factory buildHttpDataSourceFactory(DefaultBandwidthMeter bandwidthMeter) {
-    return new DefaultHttpDataSourceFactory(userAgent, bandwidthMeter);
+    return new RateLimitedHttpDataSourceFactory(userAgent, bandwidthMeter, rateThrottling);
   }
 
   public boolean useExtensionRenderers() {
