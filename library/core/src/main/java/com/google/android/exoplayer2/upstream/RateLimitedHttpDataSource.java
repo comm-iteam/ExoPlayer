@@ -45,6 +45,9 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import hugo.weaving.DebugLog;
+import timber.log.Timber;
+
 /**
  * An {@link HttpDataSource} that uses Android's {@link HttpURLConnection}.
  * <p>
@@ -315,18 +318,47 @@ public class RateLimitedHttpDataSource implements HttpDataSource {
     System.out.println("New throttle pos: " + throttlePos);
   }
 
+//  @Override
+////  @DebugLog
+//  public int read(byte[] buffer, int offset, int readLength) throws HttpDataSourceException {
+//    updateThrottle();
+//    try {
+//      skipInternal();
+//      int read = readInternal(buffer, offset, readLength);
+//
+//      if (read> 0) {
+//        rateLimiter.acquire(read * 8);
+//      }
+//
+//      return read;
+//    } catch (IOException e) {
+//      throw new HttpDataSourceException(e, dataSpec, HttpDataSourceException.TYPE_READ);
+//    }
+//  }
 
   @Override
   public int read(byte[] buffer, int offset, int readLength) throws HttpDataSourceException {
     updateThrottle();
     try {
       skipInternal();
-      int read = readInternal(buffer, offset, readLength);
 
-      if (read> 0) {
-        rateLimiter.acquire(read * 8);
+      int read = 0;
+      while (read < readLength) {
+        int subReadLength = Math.min(readLength - read, 128);
+        int aux = readInternal(buffer, offset + read, subReadLength);
+        if (aux >= 0){
+          read += aux;
+          rateLimiter.acquire(aux * 8);
+        }
+        else {
+          if (readLength == 8192){
+            return read;
+          }else {
+            return aux;
+          }
+
+        }
       }
-
       return read;
     } catch (IOException e) {
       throw new HttpDataSourceException(e, dataSpec, HttpDataSourceException.TYPE_READ);
