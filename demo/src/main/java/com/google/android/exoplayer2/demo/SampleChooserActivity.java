@@ -208,6 +208,17 @@ public class SampleChooserActivity extends Activity implements AdapterView.OnIte
         long stoppedTimeAvg = 0;
         float meanQualityAvg = 0;
         float formatChangesAvg = 0;
+
+        // loop for copy paste
+        Timber.d("----For copy/paste");
+        for (int i = 0; i < playbackReports.size(); i++) {
+          PlaybackReport pr = playbackReports.get(i);
+          Timber.d("%d, %d, %f, %f, %f, %d",
+              i, (pr.getStops() - 1), pr.getInitialBuffering() / 1000f, pr.getStallTime() / 1000f, pr.getMeanQuality(), pr.getFormatChanges());
+        }
+        Timber.d("------------------");
+
+
         for (int i = 0; i < playbackReports.size(); i++) {
           PlaybackReport pr = playbackReports.get(i);
           Timber.d("Loop: %d, stops: %d, buffering: %f, stopped: %f average quality: %f, format changes: %d",

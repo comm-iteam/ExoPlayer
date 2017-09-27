@@ -55,7 +55,7 @@ dependencies {
 
     compile 'com.jakewharton.timber:timber:4.5.1'
 
-    compile 'com.google.guava:guava:22.0-android'
+    compile 'com.google.guava:guava:23.0-android'
 }
 
 ext {
