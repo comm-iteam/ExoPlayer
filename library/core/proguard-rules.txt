@@ -1,0 +1,4 @@
+#-dontwarn com.google.**
+#-dontnote com.google.**
+#-dontwarn com.google.common.cache.**
+#-dontwarn com.google.common.primitives.UnsignedBytes$**
