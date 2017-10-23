@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright (C) 2016 The Android Open Source Project
+<?xml version="1.0" encoding="UTF-8"?><!-- Copyright (C) 2016 The Android Open Source Project
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -14,83 +13,105 @@
      limitations under the License.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              xmlns:tools="http://schemas.android.com/tools"
-              android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
+  xmlns:tools="http://schemas.android.com/tools"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent"
+  android:orientation="vertical">
 
   <LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@android:color/darker_gray"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <LinearLayout
       android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:background="@android:color/darker_gray"
-      android:gravity="center"
-      android:orientation="vertical">
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="38dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
+      android:layout_height="38dp"
+      android:gravity="center_vertical"
+      android:orientation="horizontal">
 
       <TextView
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:text="Algorithm:"
-          tools:text="Algorithm:"/>
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Algorithm:"
+        tools:text="Algorithm:" />
 
       <Spinner
-          android:id="@+id/algorithmSpinner"
-          android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-          android:layout_weight="1"/>
+        android:id="@+id/algorithmSpinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1" />
     </LinearLayout>
 
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="38dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
+      android:layout_width="match_parent"
+      android:layout_height="38dp"
+      android:gravity="center_vertical"
+      android:orientation="horizontal">
 
       <TextView
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:gravity="center_vertical"
-          android:text="Bandwidth:"
-          tools:text="Bandwidth:"/>
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:text="Bandwidth:"
+        tools:text="Bandwidth:" />
 
       <Spinner
-          android:id="@+id/bitRateSpinner"
-          android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-          android:layout_weight="1"/>
+        android:id="@+id/bitRateSpinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1" />
     </LinearLayout>
 
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="38dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
+      android:layout_width="match_parent"
+      android:layout_height="38dp"
+      android:gravity="center_vertical"
+      android:orientation="horizontal">
 
       <TextView
-          android:id="@+id/textView"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:layout_weight="1"
-          android:text="Number of repetitions"/>
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Number of repetitions" />
 
       <EditText
-          android:id="@+id/numberRepetitions"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:layout_weight="1"
-          android:ems="10"
-          android:inputType="number"
-          android:text="10"/>
+        android:id="@+id/numberRepetitions"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:ems="10"
+        android:inputType="number"
+        android:text="1" />
+    </LinearLayout>
+
+    <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="38dp"
+      android:gravity="center_vertical"
+      android:orientation="horizontal">
+
+      <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Look ahead teta param" />
+
+      <EditText
+        android:id="@+id/tetaEditText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:ems="10"
+        android:inputType="number"
+        android:text="3" />
     </LinearLayout>
   </LinearLayout>
 
-  <ExpandableListView android:id="@+id/sample_list"
-                      android:layout_width="match_parent"
-                      android:layout_height="match_parent"/>
+  <ExpandableListView
+    android:id="@+id/sample_list"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" />
 
 </LinearLayout>

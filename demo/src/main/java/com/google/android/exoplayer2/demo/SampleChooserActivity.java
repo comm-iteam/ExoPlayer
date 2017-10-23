@@ -19,7 +19,6 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.AssetManager;
 import android.net.Uri;
@@ -36,13 +35,13 @@ import android.widget.BaseExpandableListAdapter;
 import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.ExpandableListView.OnChildClickListener;
-import android.widget.RadioButton;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ParserException;
+import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DataSourceInputStream;
 import com.google.android.exoplayer2.upstream.DataSpec;
@@ -76,8 +75,10 @@ public class SampleChooserActivity extends Activity implements AdapterView.OnIte
   private int selectedRate;
 
   private EditText numberRepetitionsEditText;
+  private EditText tetaEditText;
   private Sample lastSelectedSample;
   private int numberRepetitions;
+  private int tetaValue;
   private ArrayList<PlaybackReport> playbackReports = new ArrayList<>();
 
   @Override
@@ -92,7 +93,6 @@ public class SampleChooserActivity extends Activity implements AdapterView.OnIte
     algorithmSpinner.setOnItemSelectedListener(this);
     algorithmSpinner.setAdapter(algAdapter);
 
-
     rateLimiterSpinner = (Spinner) findViewById(R.id.bitRateSpinner);
     ArrayAdapter<CharSequence> rateAdapter = ArrayAdapter.createFromResource(this,
         R.array.bandwidth_array, android.R.layout.simple_spinner_item);
@@ -101,6 +101,7 @@ public class SampleChooserActivity extends Activity implements AdapterView.OnIte
     rateLimiterSpinner.setAdapter(rateAdapter);
 
     numberRepetitionsEditText = (EditText) findViewById(R.id.numberRepetitions);
+    tetaEditText = (EditText) findViewById(R.id.tetaEditText);
 
 
     Intent intent = getIntent();
@@ -150,6 +151,7 @@ public class SampleChooserActivity extends Activity implements AdapterView.OnIte
   private void onSampleSelected(Sample sample) {
     lastSelectedSample = sample;
     numberRepetitions = Integer.parseInt(numberRepetitionsEditText.getText().toString());
+    tetaValue = Integer.parseInt(tetaEditText.getText().toString());
     playbackReports.clear();
 
 
@@ -167,6 +169,9 @@ public class SampleChooserActivity extends Activity implements AdapterView.OnIte
 
     Intent i = sample.buildIntent(this);
     i.putExtra(PlayerActivity.ADAPTATION_ALGORITHM_EXTRA, algorithm);
+    if (algorithm == PlayerActivity.ADAPTATION_ALGORITHM_LOOK_AHEAD){
+      i.putExtra(PlayerActivity.LOOKAHEAD_TETA_EXTRA, tetaValue);
+    }
 //    startActivity(i);
     startActivityForResult(i, ACTIVITY_REQUEST_CODE);
   }

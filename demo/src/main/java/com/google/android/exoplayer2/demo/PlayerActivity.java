@@ -102,8 +102,9 @@ public class PlayerActivity extends Activity implements OnClickListener, EventLi
   public static final int ADAPTATION_ALGORITHM_DEFAULT = 1;
   public static final int ADAPTATION_ALGORITHM_MULLER = 2;
 
-  public static final String PLAYBACK_REPORT_EXTRA = "playback_report_extra";
+  public static final String LOOKAHEAD_TETA_EXTRA = "lookahead_teta_extra";
 
+  public static final String PLAYBACK_REPORT_EXTRA = "playback_report_extra";
 
   public static final String ACTION_VIEW = "com.google.android.exoplayer.demo.action.VIEW";
   public static final String EXTENSION_EXTRA = "extension";
@@ -303,6 +304,7 @@ public class PlayerActivity extends Activity implements OnClickListener, EventLi
 
 
       int algorithm = getIntent().getIntExtra(ADAPTATION_ALGORITHM_EXTRA, ADAPTATION_ALGORITHM_LOOK_AHEAD);
+      int teta = getIntent().getIntExtra(LOOKAHEAD_TETA_EXTRA, LookAheadTrackSelection2.DEFAULT_TETA);
 
       TrackSelection.Factory adaptiveTrackSelectionFactory = null;
 
@@ -313,7 +315,7 @@ public class PlayerActivity extends Activity implements OnClickListener, EventLi
           break;
         case ADAPTATION_ALGORITHM_LOOK_AHEAD:
           adaptiveTrackSelectionFactory =
-              new LookAheadTrackSelection2.Factory(BANDWIDTH_METER);
+              new LookAheadTrackSelection2.Factory(BANDWIDTH_METER, teta);
           break;
         case  ADAPTATION_ALGORITHM_MULLER:
           Timber.d("Mullerrrrr");
