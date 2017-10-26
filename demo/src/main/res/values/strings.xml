@@ -76,6 +76,7 @@
         <item>20mbps</item>
         <item>Loop 2,4,8,4mbps | switch every 100s</item>
         <item>10mbps with 10s bw drop to 500kbps every 100s</item>
+        <item>4G Bus01</item>
     </string-array>
 
   <string name="ima_not_loaded">Playing sample without ads, as the IMA extension was not loaded</string>

@@ -286,6 +286,9 @@ public class SampleChooserActivity extends Activity implements AdapterView.OnIte
         case 6:
           ((DemoApplication) getApplication()).setRateThrottling(RateThrottles.getPlainWithCut01());
           break;
+        case 7:
+          ((DemoApplication) getApplication()).setRateThrottling(RateThrottles.get4GBus01());
+          break;
         default:
           ((DemoApplication) getApplication()).setRateThrottling(null);
           break;
