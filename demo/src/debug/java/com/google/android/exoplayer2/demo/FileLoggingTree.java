@@ -27,10 +27,11 @@ public class FileLoggingTree extends Timber.DebugTree {
   private static final String LOG_PREFIX = "my-log";
 
   public FileLoggingTree(Context context) {
-    System.out.println("Log path: " + context.getExternalFilesDir("logs"));
+//    System.out.println("Log path: " + context.getExternalFilesDir("logs"));
     final String logDirectory = context.getExternalFilesDir("logs") +"" ;
+    System.out.println("Log path: " + logDirectory);
 
-    File logs = context.getExternalFilesDir("logs");
+    File logs = new File(logDirectory);
     File defaultLog = new File(logs, "my-log-latest.txt");
     defaultLog.delete();
 

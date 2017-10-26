@@ -1,20 +1,20 @@
 [
   {
-    "name": "UPV | COMM | Elephants Dream",
+    "name": "UPV | COMM",
     "samples": [
       {
         "name": "Elephants Dream | VP9",
         "uri": "https://lookahead.iteam.upv.es/ed_vp9/ed_webm.mpd",
         "extension": "mpd"
-      }
-    ]
-  },
-  {
-    "name": "UPV | COMM | Tears of Steel",
-    "samples": [
+      },
       {
         "name": "Tears of Steel | VP9",
         "uri": "https://lookahead.iteam.upv.es/tos_vp9/tos_webm.mpd",
+        "extension": "mpd"
+      },
+      {
+        "name": "Sintel | VP9",
+        "uri": "https://lookahead.iteam.upv.es/sintel_vp9/sintel_webm.mpd",
         "extension": "mpd"
       }
     ]
