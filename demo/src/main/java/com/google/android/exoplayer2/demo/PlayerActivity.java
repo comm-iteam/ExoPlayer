@@ -63,7 +63,6 @@ import com.google.android.exoplayer2.source.smoothstreaming.DefaultSsChunkSource
 import com.google.android.exoplayer2.source.smoothstreaming.SsMediaSource;
 import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
-import com.google.android.exoplayer2.trackselection.LookAheadTrackSelection;
 import com.google.android.exoplayer2.trackselection.LookAheadTrackSelection2;
 import com.google.android.exoplayer2.trackselection.MappingTrackSelector.MappedTrackInfo;
 import com.google.android.exoplayer2.trackselection.MullerTrackSelection;
@@ -304,7 +303,7 @@ public class PlayerActivity extends Activity implements OnClickListener, EventLi
 
 
       int algorithm = getIntent().getIntExtra(ADAPTATION_ALGORITHM_EXTRA, ADAPTATION_ALGORITHM_LOOK_AHEAD);
-      int teta = getIntent().getIntExtra(LOOKAHEAD_TETA_EXTRA, LookAheadTrackSelection2.DEFAULT_TETA);
+      int teta = getIntent().getIntExtra(LOOKAHEAD_TETA_EXTRA, LookAheadTrackSelection2.DEFAULT_THETA);
 
       TrackSelection.Factory adaptiveTrackSelectionFactory = null;
 

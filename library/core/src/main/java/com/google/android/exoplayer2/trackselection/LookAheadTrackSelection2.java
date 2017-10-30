@@ -19,7 +19,7 @@ public class LookAheadTrackSelection2 extends BaseTrackSelection {
 
   private final boolean V = true;
 
-  public static final int DEFAULT_TETA = 3;
+  public static final int DEFAULT_THETA = 3;
   @SuppressWarnings("WeakerAccess")
   public static final float DEFAULT_BANDWIDTH_FRACTION = 0.75f;
   @SuppressWarnings("WeakerAccess")
@@ -30,7 +30,7 @@ public class LookAheadTrackSelection2 extends BaseTrackSelection {
   private BandwidthMeter bandwidthMeter;
   private final int maxInitialBitrate;
   private final float bandwidthFraction;
-  private final int teta;
+  private final int theta;
 
   private ArrayList<Integer> playedQualities = new ArrayList<>();
 
@@ -41,12 +41,12 @@ public class LookAheadTrackSelection2 extends BaseTrackSelection {
    */
   @DebugLog
   public LookAheadTrackSelection2(TrackGroup group, int[] tracks, BandwidthMeter bandwidthMeter,
-                                  int maxInitialBitrate, float bandwidthFraction, int teta) {
+                                  int maxInitialBitrate, float bandwidthFraction, int theta) {
     super(group, tracks);
     this.bandwidthMeter = bandwidthMeter;
     this.maxInitialBitrate = maxInitialBitrate;
     this.bandwidthFraction = bandwidthFraction;
-    this.teta = teta;
+    this.theta = theta;
   }
 
   @Override
@@ -94,7 +94,7 @@ public class LookAheadTrackSelection2 extends BaseTrackSelection {
     // discard qualities which next segment is too big to download
     int discarded = 0;
 
-    for (int t = 1; t < (teta + 1); t++) {
+    for (int t = 1; t < (theta + 1); t++) {
       // ahead duration and sizes
       long aheadDuration = getAheadTime(nextIndex, t);
       float aheadDurationS = aheadDuration / 1000_000f;
@@ -109,7 +109,7 @@ public class LookAheadTrackSelection2 extends BaseTrackSelection {
         float neededBandwidth = aheadTrackSize * 8F / aheadDurationS;
         // exit the search loop if this is the fitting quality
         if (effectiveBitrate >= neededBandwidth) {
-          Timber.d("Teta: %d, Selected Index: %d, needed bandwidth: %f", t, discarded, neededBandwidth);
+          Timber.d("Theta: %d, Selected Index: %d, needed bandwidth: %f", t, discarded, neededBandwidth);
           break;
         }
       }
@@ -146,28 +146,28 @@ public class LookAheadTrackSelection2 extends BaseTrackSelection {
     private final BandwidthMeter bandwidthMeter;
     private final int maxInitialBitrate;
     private final float bandwidthFraction;
-    private final int teta;
+    private final int theta;
 
     public Factory(BandwidthMeter bandwidthMeter) {
-      this(bandwidthMeter, DEFAULT_MAX_INITIAL_BITRATE, DEFAULT_BANDWIDTH_FRACTION, DEFAULT_TETA);
+      this(bandwidthMeter, DEFAULT_MAX_INITIAL_BITRATE, DEFAULT_BANDWIDTH_FRACTION, DEFAULT_THETA);
     }
 
-    public Factory(BandwidthMeter bandwidthMeter, int teta) {
-      this(bandwidthMeter, DEFAULT_MAX_INITIAL_BITRATE, DEFAULT_BANDWIDTH_FRACTION, teta);
+    public Factory(BandwidthMeter bandwidthMeter, int theta) {
+      this(bandwidthMeter, DEFAULT_MAX_INITIAL_BITRATE, DEFAULT_BANDWIDTH_FRACTION, theta);
     }
 
     public Factory(BandwidthMeter bandwidthMeter, int maxInitialBitrate, float bandwidthFraction,
-                   int teta){
+                   int theta){
       this.bandwidthMeter = bandwidthMeter;
       this.maxInitialBitrate = maxInitialBitrate;
       this.bandwidthFraction = bandwidthFraction;
-      this.teta = teta;
+      this.theta = theta;
     }
 
     @Override
     public LookAheadTrackSelection2 createTrackSelection(TrackGroup group, int... tracks) {
       return new LookAheadTrackSelection2(group, tracks, bandwidthMeter, maxInitialBitrate,
-          bandwidthFraction, teta);
+          bandwidthFraction, theta);
     }
 
   }

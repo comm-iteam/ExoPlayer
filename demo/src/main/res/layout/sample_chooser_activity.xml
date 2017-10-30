@@ -96,7 +96,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:text="Look ahead teta param" />
+        android:text="Look ahead theta param" />
 
       <EditText
         android:id="@+id/tetaEditText"
